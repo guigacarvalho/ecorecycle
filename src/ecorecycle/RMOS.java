@@ -1,8 +1,9 @@
 package ecorecycle;
 
+import java.io.*;
 import java.util.*;
 
-public class RMOS {	
+public class RMOS implements Serializable {	
 	
 	private static ArrayList<RCM> allRCMs = new ArrayList<RCM>();
 	

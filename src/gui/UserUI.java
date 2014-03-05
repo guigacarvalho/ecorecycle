@@ -263,6 +263,7 @@ public class UserUI extends JPanel implements  ItemListener, ActionListener {
 			           }
 			           timer.schedule(new RemindTask(), 2000);
 		               this.rcmObj.finishTransaction();
+		               AdminUI.refreshTable();
 	
 		               
 		               AdminUI.refreshGraphic();

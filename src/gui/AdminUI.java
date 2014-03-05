@@ -42,7 +42,21 @@ import javax.swing.event.TreeSelectionListener;
 public class AdminUI extends JPanel implements  ActionListener, 
 												TableModelListener, 
 												WindowListener{
-
+	//UI Variables Declaration
+	JToggleButton unit, cash;
+	JButton newMachine, removeMachine, changeItem, addItem,activateRCM,loadMachine, EmptyMachine ;
+	JTextArea transactionItemsTextArea;
+	JLabel totalAmount,machinesLabel, statsLabel, itemTypes;
+    final static JFXPanel fxPanel = new JFXPanel();
+    static DefaultTableModel defTableModel;
+	private JTable table;
+    String[] columnNames = {"ID",
+            "Location",
+            "Capacity",
+            "$ Available",
+            "Status",
+            "Item Types",
+            "Last Emptied"};
 	private final String IMG_PATHS[] = {
 			"./img/auiHeader.png",
 			"./img/RecyclingMachines.png",
@@ -51,40 +65,19 @@ public class AdminUI extends JPanel implements  ActionListener,
 			"./img/ItemTypes.png",
 			"./img/buttons/Slice-",
 			"./img/Stats.png"};
-
-	public static RMOS station = new RMOS();
-	
-	JToggleButton unit, cash;
-	JButton newMachine, removeMachine, changeItem, addItem,activateRCM,loadMachine, EmptyMachine ;
-	JTextArea transactionItemsTextArea;
-	JLabel totalAmount,machinesLabel, statsLabel, itemTypes;
-	
-//	private static int coupon=0;
-//	private int kg=0;
-//	private String [] units = {"Kg", "Lb"}; 
-	
-    final static JFXPanel fxPanel = new JFXPanel();
-    static DefaultTableModel defTableModel;
-
-
-    String[] columnNames = {"ID",
-            "Location",
-            "Capacity",
-            "$ Available",
-            "Status",
-            "Item Types",
-            "Last Emptied"};
-
-	private JTable table;
-
-	private int selectedRcm;
-
 	static JFrame frame;
+
+	//Model variables
+	public static RMOS station = new RMOS();
+	private int selectedRcm;
 	
+	//Class constructor
 	public AdminUI (final RMOS station) {
+		//Basic Layout Definitions
 		super(new FlowLayout());
 		this.setBackground(Color.WHITE);
 
+		//JTable initialization
 		Object[] newData = {0,
     			station.getMachines().get(0).location,
     			station.getMachines().get(0).presentCapacity, 
@@ -94,32 +87,34 @@ public class AdminUI extends JPanel implements  ActionListener,
     			station.getMachines().get(0).getLastEmptied(),
     			};
 	    Object[][] data = {newData};
-	    
+
+	    // Preventing the user input
 	    defTableModel = new DefaultTableModel(data,columnNames) {
 	    	  public boolean isCellEditable(int row, int column) {
-//	    	       if(column > 3)
 	    	    	   return false;
-	//    	       return true;
 	    	    }
 	    };
 	    
+	    //Instantiating the JTable
 		table = new JTable(defTableModel);
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		
-            ListSelectionModel rowSM = table.getSelectionModel();
-            rowSM.addListSelectionListener(new ListSelectionListener() {
-                public void valueChanged(ListSelectionEvent e) {
-                    if (e.getValueIsAdjusting()) return;
-                    ListSelectionModel lsm = (ListSelectionModel)e.getSource();
-                    if (lsm.isSelectionEmpty()) {
-//                        System.out.println("= No RCMs are selected.\n");
-                    } else {
-                        selectedRcm = lsm.getMinSelectionIndex();
-  //                      System.out.println("= RCM " + station.getMachine(selectedRcm).location+ " is now selected.\n");
-                    }
+		//Adding the selection handler
+		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);		
+        ListSelectionModel rowSM = table.getSelectionModel();
+        rowSM.addListSelectionListener(new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent e) {
+                if (e.getValueIsAdjusting()) return;
+                ListSelectionModel lsm = (ListSelectionModel)e.getSource();
+                if (lsm.isSelectionEmpty()) {
+                	selectedRcm =-1;
+                } else {
+                    selectedRcm = lsm.getMinSelectionIndex();
                 }
-            });
-		
+            }
+        });
+	    defTableModel.addTableModelListener(this);	    
+
+        //Populating the table
 	    for (int i =1; i< station.getMachines().size(); i++) {
 	    	Object[] newData1 = {i,
 	    			station.getMachine(i).location,
@@ -130,9 +125,8 @@ public class AdminUI extends JPanel implements  ActionListener,
 	    			station.getMachine(i).getLastEmptied()};
     			defTableModel.addRow(newData1);	    	
 	    }
-		
-	    defTableModel.addTableModelListener(this);	    
-	    
+
+	    //Creating the menu bar
 	    newMachine = new JButton("New Machine");
 	    newMachine.setBorder(null);
 	    newMachine.setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
@@ -145,13 +139,11 @@ public class AdminUI extends JPanel implements  ActionListener,
 	    removeMachine .setForeground(new Color(42,195,207));
 	    removeMachine.addActionListener(this);
 	    
-
 	    addItem = new JButton("Add Item type");
 	    addItem .setBorder(null);
 	    addItem .setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
 	    addItem .setForeground(new Color(42,195,207));
 	    addItem .addActionListener(this);
-	    
 	    
 	    changeItem = new JButton("Change Items");
 	    changeItem.setBorder(null);
@@ -178,18 +170,29 @@ public class AdminUI extends JPanel implements  ActionListener,
 	    EmptyMachine .addActionListener(this);
 	    
 	    JLabel [] separator = new JLabel[10];
-	    
 	    for (int i =0; i<separator.length;i++) {
 		    separator[i]= new JLabel(" = ");
 		    separator[i].setBorder(null);
 		    separator[i].setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
 		    separator[i].setForeground(new Color(166,170,169));
 	    }
-	    
-	    
+		Container topMenuContainer = new Container();
+		topMenuContainer.setLayout(new BoxLayout(topMenuContainer, BoxLayout.LINE_AXIS));
+		topMenuContainer.add(newMachine);
+		topMenuContainer.add(separator[0]);		
+		topMenuContainer.add(removeMachine);
+		topMenuContainer.add(separator[1]);		
+		topMenuContainer.add(changeItem);
+		topMenuContainer.add(separator[2]);		
+		topMenuContainer.add(activateRCM);
+		topMenuContainer.add(separator[3]);		
+		topMenuContainer.add(loadMachine);
+		topMenuContainer.add(separator[4]);
+		topMenuContainer.add(EmptyMachine);
+
+		//Creating the header
 		JLabel header = loadImage(IMG_PATHS[0]);
 		machinesLabel = loadImage(IMG_PATHS[1]);
-        
 		itemTypes = loadImage(IMG_PATHS[4]);
 		
 		Container topLabels = new Container();
@@ -208,19 +211,6 @@ public class AdminUI extends JPanel implements  ActionListener,
 
 		centerContainer.add(new Box.Filler(new Dimension(20,20),new Dimension(20,20),new Dimension(20,20)));
 		Container tableContainer = new Container();
-		Container topMenuContainer = new Container();
-		topMenuContainer.setLayout(new BoxLayout(topMenuContainer, BoxLayout.LINE_AXIS));
-		topMenuContainer.add(newMachine);
-		topMenuContainer.add(separator[0]);		
-		topMenuContainer.add(removeMachine);
-		topMenuContainer.add(separator[1]);		
-		topMenuContainer.add(changeItem);
-		topMenuContainer.add(separator[2]);		
-		topMenuContainer.add(activateRCM);
-		topMenuContainer.add(separator[3]);		
-		topMenuContainer.add(loadMachine);
-		topMenuContainer.add(separator[4]);
-		topMenuContainer.add(EmptyMachine);
 		
 		Container statsContainer = new Container();
 		statsContainer .setLayout(new GridLayout(2,2));
