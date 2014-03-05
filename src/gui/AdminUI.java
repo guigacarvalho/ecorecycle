@@ -39,7 +39,7 @@ import javax.swing.event.TreeSelectionListener;
 */
 
 @SuppressWarnings("serial")
-public class AdminUI extends JPanel implements  ActionListener, TableModelListener {
+public class AdminUI extends JPanel implements  ActionListener, TableModelListener, WindowListener{
 
 	private final String IMG_PATHS[] = {
 			"./img/auiHeader.png",
@@ -217,10 +217,16 @@ public class AdminUI extends JPanel implements  ActionListener, TableModelListen
 		topMenuContainer.add(loadMachine);
 		topMenuContainer.add(separator[4]);
 		topMenuContainer.add(EmptyMachine);
+		
+		Container statsContainer = new Container();
+		statsContainer .setLayout(new GridLayout(2,2));
+		
+//		statsContainer .add();
+		
 
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("General", null, fxPanel, "Presents the general statistics");
-        tabbedPane.addTab("RCM", null, separator[5], "Presents the statistics about a specific RCM");
+        tabbedPane.addTab("RCM", null, statsContainer, "Presents the statistics about a specific RCM");
         tabbedPane.addTab("Money", null, separator[7], "Presents the statistics about money");
         tabbedPane.addTab("Recyclable Items", null, separator[8], "Presents the statistics about Recyclable Items");
         tabbedPane.addTab("Other", null, separator[9], "Presents other statistics");
@@ -366,9 +372,8 @@ public class AdminUI extends JPanel implements  ActionListener, TableModelListen
         frame.add(new AdminUI(station));
 
         //Display the window.
-
         frame.setBounds(200, 200, 800, 600);
-        frame.setVisible(true);        
+        frame.setVisible(true);
         
     }
     static void initFX(JFXPanel fxPanel) {
@@ -471,7 +476,57 @@ public class AdminUI extends JPanel implements  ActionListener, TableModelListen
 	                initFX(fxPanel);
 	            }
 	       });
+		}
+		public static void refreshStatistics () {
+       		System.out.print(station.getMachine(0).getNumberOfTransaction(7)+""+
+       		station.getMachine(0).getTotalValueOfMachinePerDay()+
+       		station.getMachine(0).getTotalValueOfMachinePerWeek()+
+       		station.getMaxTransactionMachine(7)+
+       		station.returnMostUsedMachine().location);
 
+		}
+
+		@Override
+		public void windowOpened(WindowEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void windowClosing(WindowEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void windowClosed(WindowEvent e) {
+			// TODO Auto-generated method stub
+			System.out.print("window closed!");
+			
+		}
+
+		@Override
+		public void windowIconified(WindowEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void windowDeiconified(WindowEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void windowActivated(WindowEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void windowDeactivated(WindowEvent e) {
+			// TODO Auto-generated method stub
+			
 		}
 		
 }

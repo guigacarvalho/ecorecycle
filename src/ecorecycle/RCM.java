@@ -40,7 +40,7 @@ public class RCM {
 		public Double getTotalAmount() {
 			Double totalAmount = 0.0;
 			for(int i=0; i < transactionItems.size(); i++)
-				totalAmount += transactionItems.get(i).price;
+				totalAmount += transactionItems.get(i).price*transactionItems.get(i).weight;
 			return totalAmount;
 		}
 		public int getTotalQtd() {
@@ -136,7 +136,7 @@ public class RCM {
 	 }
 	 
 	 public Transaction getLastTransaction(){
-		 return this.listOfTransaction.get(listOfTransaction.size());
+		 return this.listOfTransaction.get(listOfTransaction.size()-1);
 	 }
 	 public Double  SessionMoney(){
 		 return this.moneyForSession;
@@ -161,6 +161,7 @@ public class RCM {
 	}
 	public void finishTransaction () {
 		this.listOfTransaction.add(currentTransaction);
+		this.money-=currentTransaction.getTotalAmount();
 		this.currentTransaction = new Transaction();
 	}
 
