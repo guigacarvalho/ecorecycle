@@ -39,7 +39,9 @@ import javax.swing.event.TreeSelectionListener;
 */
 
 @SuppressWarnings("serial")
-public class AdminUI extends JPanel implements  ActionListener, TableModelListener, WindowListener{
+public class AdminUI extends JPanel implements  ActionListener, 
+												TableModelListener, 
+												WindowListener{
 
 	private final String IMG_PATHS[] = {
 			"./img/auiHeader.png",
@@ -75,7 +77,9 @@ public class AdminUI extends JPanel implements  ActionListener, TableModelListen
 
 	private JTable table;
 
-	protected int selectedRcm;
+	private int selectedRcm;
+
+	static JFrame frame;
 	
 	public AdminUI (final RMOS station) {
 		super(new FlowLayout());
@@ -365,8 +369,8 @@ public class AdminUI extends JPanel implements  ActionListener, TableModelListen
 		public void createAndShowGUI() {
 
         //Create and set up the window.
-        JFrame frame = new JFrame("RMOS");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame = new JFrame("RMOS");
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         //Add content to the window.
         frame.add(new AdminUI(station));
@@ -374,6 +378,7 @@ public class AdminUI extends JPanel implements  ActionListener, TableModelListen
         //Display the window.
         frame.setBounds(200, 200, 800, 600);
         frame.setVisible(true);
+        frame.addWindowListener(this);
         
     }
     static void initFX(JFXPanel fxPanel) {
@@ -495,13 +500,28 @@ public class AdminUI extends JPanel implements  ActionListener, TableModelListen
 		@Override
 		public void windowClosing(WindowEvent e) {
 			// TODO Auto-generated method stub
-			
+			System.out.print("WindowListener method called: windowClosing.");
+		        //A pause so user can see the message before
+		        //the window actually closes.
+		        ActionListener task = new ActionListener() {
+		            boolean alreadyDisposed = false;
+		            public void actionPerformed(ActionEvent e) {
+		                if (frame.isDisplayable()) {
+		                    alreadyDisposed = true;
+		                    frame.dispose();
+		                }
+		            }
+		        };
+		        Timer timer = new Timer(500, task); //fire every half second
+		        timer.setInitialDelay(2000);        //first delay 2 seconds
+		        timer.setRepeats(false);
+		        timer.start();
 		}
 
 		@Override
 		public void windowClosed(WindowEvent e) {
 			// TODO Auto-generated method stub
-			System.out.print("window closed!");
+			System.out.print("closed");
 			
 		}
 
