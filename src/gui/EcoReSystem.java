@@ -38,17 +38,7 @@ public class EcoReSystem {
 
     	AdminUI stationUI = new AdminUI(station);            	
     	stationUI.createAndShowGUI();
-
-//		
-//        //Schedule a job for the event dispatch thread:
-//        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-//
-//        	
-//        	public void run() {
-//                //Creating and showing the application's GUI.
-//            }
-//        });
-//        
+    
       //serialize the List
         try (
           OutputStream file = new FileOutputStream("quarks.ser");
@@ -78,7 +68,7 @@ public class EcoReSystem {
         catch(IOException ex){
           fLogger.log(Level.SEVERE, "Cannot perform input.", ex);
         }
-        System.out.print(recoveredStation.getMachine(1).location+" imported");
+        System.out.print(recoveredStation.getMachines().size()+" imported");
         
 	}
 

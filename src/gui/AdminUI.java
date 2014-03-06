@@ -44,12 +44,16 @@ public class AdminUI extends JPanel implements  ActionListener,
 												WindowListener{
 	//UI Variables Declaration
 	JToggleButton unit, cash;
-	JButton newMachine, removeMachine, changeItem, addItem,activateRCM,loadMachine, EmptyMachine ;
+	JButton newMachine, removeMachine, changeItem, addItem,activateRCM,loadMachine, EmptyMachine,submitBt ;
 	JTextArea transactionItemsTextArea;
-	JLabel totalAmount,machinesLabel, statsLabel, itemTypes;
+	JTextField loginTF, passwdTF;
+	JLabel totalAmount,machinesLabel, statsLabel, itemTypes, loginL, passwdL, loginStatusL;
+    JLabel [] separator = new JLabel[10];
     final static JFXPanel fxPanel = new JFXPanel();
     static DefaultTableModel defTableModel;
 	private JTable table;
+	Container topMenuContainer, loginContainer;
+	
     String[] columnNames = {"ID",
             "Location",
             "Capacity",
@@ -64,12 +68,16 @@ public class AdminUI extends JPanel implements  ActionListener,
 			"./img/newMachine.png",
 			"./img/ItemTypes.png",
 			"./img/buttons/Slice-",
-			"./img/Stats.png"};
+			"./img/Stats.png",
+			"./img/logo.png"};
 	static JFrame frame;
 
 	//Model variables
 	public static RMOS station = new RMOS();
 	private int selectedRcm;
+	private  String [] usr= {"Guilherme", "Ankit"};
+	private String passwd = "admin";
+	
 	
 	//Class constructor
 	public AdminUI (final RMOS station) {
@@ -77,176 +85,238 @@ public class AdminUI extends JPanel implements  ActionListener,
 		super(new FlowLayout());
 		this.setBackground(Color.WHITE);
 
-		//JTable initialization
-		Object[] newData = {0,
-    			station.getMachines().get(0).location,
-    			station.getMachines().get(0).presentCapacity, 
-    			station.getMachines().get(0).money,
-    			station.getMachines().get(0).Status,
-    			station.getMachines().get(0).listOfItems.size(),
-    			station.getMachines().get(0).getLastEmptied(),
-    			};
-	    Object[][] data = {newData};
-
-	    // Preventing the user input
-	    defTableModel = new DefaultTableModel(data,columnNames) {
-	    	  public boolean isCellEditable(int row, int column) {
-	    	    	   return false;
-	    	    }
-	    };
-	    
-	    //Instantiating the JTable
-		table = new JTable(defTableModel);
-		
-		//Adding the selection handler
-		table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);		
-        ListSelectionModel rowSM = table.getSelectionModel();
-        rowSM.addListSelectionListener(new ListSelectionListener() {
-            public void valueChanged(ListSelectionEvent e) {
-                if (e.getValueIsAdjusting()) return;
-                ListSelectionModel lsm = (ListSelectionModel)e.getSource();
-                if (lsm.isSelectionEmpty()) {
-                	selectedRcm =-1;
-                } else {
-                    selectedRcm = lsm.getMinSelectionIndex();
-                }
-            }
-        });
-	    defTableModel.addTableModelListener(this);	    
-
-        //Populating the table
-	    for (int i =1; i< station.getMachines().size(); i++) {
-	    	Object[] newData1 = {i,
-	    			station.getMachine(i).location,
-	    			station.getMachine(i).presentCapacity, 
-	    			station.getMachine(i).money,
-	    			station.getMachine(i).Status,
-	    			station.getMachine(i).listOfItems.size(),
-	    			station.getMachine(i).getLastEmptied()};
-    			defTableModel.addRow(newData1);	    	
-	    }
-
-	    //Creating the menu bar
-	    newMachine = new JButton("New Machine");
-	    newMachine.setBorder(null);
-	    newMachine.setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
-		newMachine.setForeground(new Color(42,195,207));
-		newMachine.addActionListener(this);
-
-	    removeMachine = new JButton("Remove Machine");
-	    removeMachine .setBorder(null);
-	    removeMachine .setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
-	    removeMachine .setForeground(new Color(42,195,207));
-	    removeMachine.addActionListener(this);
-	    
-	    addItem = new JButton("Add Item type");
-	    addItem .setBorder(null);
-	    addItem .setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
-	    addItem .setForeground(new Color(42,195,207));
-	    addItem .addActionListener(this);
-	    
-	    changeItem = new JButton("Change Items");
-	    changeItem.setBorder(null);
-	    changeItem.setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
-	    changeItem.setForeground(new Color(42,195,207));
-	    changeItem.addActionListener(this);
-	    
-	    activateRCM = new JButton("Activate/Deactivate");
-	    activateRCM.setBorder(null);
-	    activateRCM.setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
-	    activateRCM.setForeground(new Color(42,195,207));
-	    activateRCM.addActionListener(this);
-	    
-	    loadMachine = new JButton("Load Machine");
-	    loadMachine .setBorder(null);
-	    loadMachine .setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
-	    loadMachine .setForeground(new Color(42,195,207));
-	    loadMachine .addActionListener(this);
-	    
-	    EmptyMachine = new JButton("Empty Machine");
-	    EmptyMachine .setBorder(null);
-	    EmptyMachine .setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
-	    EmptyMachine .setForeground(new Color(42,195,207));
-	    EmptyMachine .addActionListener(this);
-	    
-	    JLabel [] separator = new JLabel[10];
-	    for (int i =0; i<separator.length;i++) {
-		    separator[i]= new JLabel(" = ");
-		    separator[i].setBorder(null);
-		    separator[i].setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
-		    separator[i].setForeground(new Color(166,170,169));
-	    }
-		Container topMenuContainer = new Container();
-		topMenuContainer.setLayout(new BoxLayout(topMenuContainer, BoxLayout.LINE_AXIS));
-		topMenuContainer.add(newMachine);
-		topMenuContainer.add(separator[0]);		
-		topMenuContainer.add(removeMachine);
-		topMenuContainer.add(separator[1]);		
-		topMenuContainer.add(changeItem);
-		topMenuContainer.add(separator[2]);		
-		topMenuContainer.add(activateRCM);
-		topMenuContainer.add(separator[3]);		
-		topMenuContainer.add(loadMachine);
-		topMenuContainer.add(separator[4]);
-		topMenuContainer.add(EmptyMachine);
-
-		//Creating the header
-		JLabel header = loadImage(IMG_PATHS[0]);
-		machinesLabel = loadImage(IMG_PATHS[1]);
-		itemTypes = loadImage(IMG_PATHS[4]);
-		
-		Container topLabels = new Container();
-		topLabels.setLayout(new BoxLayout(topLabels, BoxLayout.LINE_AXIS));
-		topLabels.add(machinesLabel);
-		
-		Container lowLabels = new Container();
-		lowLabels.setLayout(new BoxLayout(lowLabels, BoxLayout.LINE_AXIS));
-		lowLabels.add(itemTypes);
-		
-		Container centerContainer = new Container();
-		centerContainer.setLayout(new BoxLayout(centerContainer, BoxLayout.LINE_AXIS));
-		
-        JScrollPane tableScrollPane = new JScrollPane(table);
-		tableScrollPane .setPreferredSize(new Dimension(460,100));
-
-		centerContainer.add(new Box.Filler(new Dimension(20,20),new Dimension(20,20),new Dimension(20,20)));
-		Container tableContainer = new Container();
-		
-		Container statsContainer = new Container();
-		statsContainer .setLayout(new GridLayout(2,2));
-		
-//		statsContainer .add();
-		
-
-        JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("General", null, fxPanel, "Presents the general statistics");
-        tabbedPane.addTab("RCM", null, statsContainer, "Presents the statistics about a specific RCM");
-        tabbedPane.addTab("Money", null, separator[7], "Presents the statistics about money");
-        tabbedPane.addTab("Recyclable Items", null, separator[8], "Presents the statistics about Recyclable Items");
-        tabbedPane.addTab("Other", null, separator[9], "Presents other statistics");
-        //tabbedPane.setBackground(Color.WHITE);
-
-		tableContainer.add(topMenuContainer);
-
-		tableContainer.setLayout(new BoxLayout(tableContainer, BoxLayout.PAGE_AXIS));
-		tableContainer.add(table.getTableHeader(), BorderLayout.PAGE_START);
-		tableContainer.add(tableScrollPane , BorderLayout.CENTER);
-		centerContainer.add(tableContainer);
-		
-		add(header);
-		add(topLabels);
-		add(centerContainer);		
-		add(lowLabels);
-		add(tabbedPane);
-        
-        Platform.runLater(new Runnable() {
-            @Override
-            public void run() {
-                initFX(fxPanel);
-            }
-       });
 
 		
+		JLabel logo = loadImage(IMG_PATHS[7]);
+//		logo.setBounds(200, 200, 100, 50);
+		
+		
+		loginL = new JLabel("Login");
+		loginL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
+		loginL.setForeground(new Color(83,88,95));
+		loginL.setPreferredSize(new Dimension(50,20));
+		
+		loginTF = new JTextField();
+		loginTF.setPreferredSize(new Dimension(100,20));
+		
+		passwdL = new JLabel("Password");
+		passwdL.setBorder(null);
+		passwdL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
+		passwdL.setForeground(new Color(83,88,95));
+		passwdL.setPreferredSize(new Dimension(70,20));
+
+		passwdTF = new JPasswordField();
+		passwdTF.setPreferredSize(new Dimension(100,20));
+		passwdTF.setSize(100,20);
+	    submitBt = new JButton("Submit");
+	    submitBt.setBorder(null);
+	    submitBt.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
+	    submitBt.setForeground(new Color(42,195,207));
+	    submitBt.addActionListener(this);
+
+		loginStatusL = new JLabel("");
+		loginStatusL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
+		loginStatusL.setForeground(new Color(83,88,95));
+		loginStatusL.setPreferredSize(new Dimension(240,20));
+
+
+		loginContainer = new Container();
+		loginContainer.setLayout(new FlowLayout());
+		loginContainer.add(logo);
+		loginContainer.add(loginL);
+		loginContainer.add(loginTF);
+		loginContainer.add(passwdL);
+		loginContainer.add(passwdTF);
+	    loginContainer.add(submitBt);
+		loginContainer.add(loginStatusL);
+		add(loginContainer);
+
+		
+	}
+	private boolean authenticate() {
+		if ((loginTF.getText().contentEquals(usr[1]) ||
+				loginTF.getText().contentEquals(usr[0]) ) 
+				&& passwdTF.getText().contentEquals(passwd)  ) {
+			System.out.print("Login OK!\n");			
+			return true;
+		}
+		else {
+			System.out.print("= Login not OK!\n");
+			return false;
+		}
+	}
+	private void loadAdminPanel() {
+	loadTable();
+
+	loadMenuBar();
+
+
+	//Creating the header
+	JLabel header = loadImage(IMG_PATHS[0]);
+	machinesLabel = loadImage(IMG_PATHS[1]);
+	itemTypes = loadImage(IMG_PATHS[4]);
+	
+	Container topLabels = new Container();
+	topLabels.setLayout(new BoxLayout(topLabels, BoxLayout.LINE_AXIS));
+	topLabels.add(machinesLabel);
+	
+	Container lowLabels = new Container();
+	lowLabels.setLayout(new BoxLayout(lowLabels, BoxLayout.LINE_AXIS));
+	lowLabels.add(itemTypes);
+	
+	Container centerContainer = new Container();
+	centerContainer.setLayout(new BoxLayout(centerContainer, BoxLayout.LINE_AXIS));
+	
+    JScrollPane tableScrollPane = new JScrollPane(table);
+	tableScrollPane .setPreferredSize(new Dimension(460,100));
+
+	centerContainer.add(new Box.Filler(new Dimension(20,20),new Dimension(20,20),new Dimension(20,20)));
+	Container tableContainer = new Container();
+	
+	Container statsContainer = new Container();
+	statsContainer .setLayout(new GridLayout(2,2));
+	
+    JTabbedPane tabbedPane = new JTabbedPane();
+    tabbedPane.addTab("General", null, fxPanel, "Presents the general statistics");
+    tabbedPane.addTab("RCM", null, statsContainer, "Presents the statistics about a specific RCM");
+    tabbedPane.addTab("Money", null, separator[7], "Presents the statistics about money");
+    tabbedPane.addTab("Recyclable Items", null, separator[8], "Presents the statistics about Recyclable Items");
+    tabbedPane.addTab("Other", null, separator[9], "Presents other statistics");
+    //tabbedPane.setBackground(Color.WHITE);
+
+	tableContainer.add(topMenuContainer);
+	tableContainer.setLayout(new BoxLayout(tableContainer, BoxLayout.PAGE_AXIS));
+	tableContainer.add(table.getTableHeader(), BorderLayout.PAGE_START);
+	tableContainer.add(tableScrollPane , BorderLayout.CENTER);
+	centerContainer.add(tableContainer);
+	
+	add(header);
+	add(topLabels);
+	add(centerContainer);		
+	add(lowLabels);
+	add(tabbedPane);
+    
+    Platform.runLater(new Runnable() {
+        @Override
+        public void run() {
+            initFX(fxPanel);
+        }
+   });
+}
+		private void loadMenuBar() {
+		    //Creating the menu bar
+		    newMachine = new JButton("New Machine");
+		    newMachine.setBorder(null);
+		    newMachine.setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
+			newMachine.setForeground(new Color(42,195,207));
+			newMachine.addActionListener(this);
+
+		    removeMachine = new JButton("Remove Machine");
+		    removeMachine .setBorder(null);
+		    removeMachine .setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
+		    removeMachine .setForeground(new Color(42,195,207));
+		    removeMachine.addActionListener(this);
+		    
+		    addItem = new JButton("Add Item type");
+		    addItem .setBorder(null);
+		    addItem .setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
+		    addItem .setForeground(new Color(42,195,207));
+		    addItem .addActionListener(this);
+		    
+		    changeItem = new JButton("Change Items");
+		    changeItem.setBorder(null);
+		    changeItem.setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
+		    changeItem.setForeground(new Color(42,195,207));
+		    changeItem.addActionListener(this);
+		    
+		    activateRCM = new JButton("Activate/Deactivate");
+		    activateRCM.setBorder(null);
+		    activateRCM.setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
+		    activateRCM.setForeground(new Color(42,195,207));
+		    activateRCM.addActionListener(this);
+		    
+		    loadMachine = new JButton("Load Machine");
+		    loadMachine .setBorder(null);
+		    loadMachine .setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
+		    loadMachine .setForeground(new Color(42,195,207));
+		    loadMachine .addActionListener(this);
+		    
+		    EmptyMachine = new JButton("Empty Machine");
+		    EmptyMachine .setBorder(null);
+		    EmptyMachine .setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
+		    EmptyMachine .setForeground(new Color(42,195,207));
+		    EmptyMachine .addActionListener(this);
+		    
+		    for (int i =0; i<separator.length;i++) {
+			    separator[i]= new JLabel(" = ");
+			    separator[i].setBorder(null);
+			    separator[i].setFont(new Font("Letter Gothic Std", Font.BOLD, 12));
+			    separator[i].setForeground(new Color(166,170,169));
+		    }
+			topMenuContainer = new Container();
+			topMenuContainer.setLayout(new BoxLayout(topMenuContainer, BoxLayout.LINE_AXIS));
+			topMenuContainer.add(newMachine);
+			topMenuContainer.add(separator[0]);		
+			topMenuContainer.add(removeMachine);
+			topMenuContainer.add(separator[1]);		
+			topMenuContainer.add(changeItem);
+			topMenuContainer.add(separator[2]);		
+			topMenuContainer.add(activateRCM);
+			topMenuContainer.add(separator[3]);		
+			topMenuContainer.add(loadMachine);
+			topMenuContainer.add(separator[4]);
+			topMenuContainer.add(EmptyMachine);
+	}
+
+		private void loadTable() {
+			//JTable initialization
+			Object[] newData = {0,
+	    			station.getMachines().get(0).location,
+	    			station.getMachines().get(0).presentCapacity, 
+	    			station.getMachines().get(0).money,
+	    			station.getMachines().get(0).Status,
+	    			station.getMachines().get(0).listOfItems.size(),
+	    			station.getMachines().get(0).getLastEmptied(),
+	    			};
+		    Object[][] data = {newData};
+
+		    // Preventing the user input
+		    defTableModel = new DefaultTableModel(data,columnNames) {
+		    	  public boolean isCellEditable(int row, int column) {
+		    	    	   return false;
+		    	    }
+		    };
+		    
+		    //Instantiating the JTable
+			table = new JTable(defTableModel);
+			
+			//Adding the selection handler
+			table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);		
+	        ListSelectionModel rowSM = table.getSelectionModel();
+	        rowSM.addListSelectionListener(new ListSelectionListener() {
+	            public void valueChanged(ListSelectionEvent e) {
+	                if (e.getValueIsAdjusting()) return;
+	                ListSelectionModel lsm = (ListSelectionModel)e.getSource();
+	                if (lsm.isSelectionEmpty()) {
+	                	selectedRcm =-1;
+	                } else {
+	                    selectedRcm = lsm.getMinSelectionIndex();
+	                }
+	            }
+	        });
+		    defTableModel.addTableModelListener(this);	    
+
+	        //Populating the table
+		    for (int i =1; i< station.getMachines().size(); i++) {
+		    	Object[] newData1 = {i,
+		    			station.getMachine(i).location,
+		    			station.getMachine(i).presentCapacity, 
+		    			station.getMachine(i).money,
+		    			station.getMachine(i).Status,
+		    			station.getMachine(i).listOfItems.size(),
+		    			station.getMachine(i).getLastEmptied()};
+	    			defTableModel.addRow(newData1);	    	
+		    }		
 	}
 
 		@SuppressWarnings("static-access")
@@ -353,9 +423,21 @@ public class AdminUI extends JPanel implements  ActionListener,
 							 station.getMachine(selectedRcm).presentCapacity=station.getMachine(selectedRcm).capacity;
 							 refreshTable();
 						 }
+						 else if(e.getSource() == submitBt){
+							 if(authenticate()==true) {
+								 hideLoginPanel();
+								 loadAdminPanel();
+							 } else {
+								 loginStatusL.setText("Try a valid user/passwd combination.");
+							 }
+						 }
 		       }
    
 		
+		private void hideLoginPanel() {
+			loginContainer.setVisible(false);
+			
+		}
 		public void createAndShowGUI() {
 
         //Create and set up the window.
