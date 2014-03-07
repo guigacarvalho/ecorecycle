@@ -5,7 +5,7 @@ import java.util.*;
 
 public class RMOS implements Serializable {	
 	
-	private static ArrayList<RCM> allRCMs = new ArrayList<RCM>();
+	private ArrayList<RCM> allRCMs = new ArrayList<RCM>();
 	
 	private static Item availableItemTypes[]=new Item[9];
 	

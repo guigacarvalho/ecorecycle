@@ -1,6 +1,8 @@
 package ecorecycle;
 
-public class Item {
+import java.io.Serializable;
+
+public class Item implements Serializable {
 		public String itemType;
 		public Double weight;
 		public Double price;

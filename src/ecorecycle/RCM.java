@@ -2,11 +2,12 @@ package ecorecycle;
 import gui.AdminUI;
 import gui.UserUI;
 
+import java.io.Serializable;
 import java.util.*;
 
 import javax.swing.JOptionPane;
 
-public class RCM {
+public class RCM implements Serializable {
 
 	public int machineId;
 	public String location;
@@ -28,7 +29,7 @@ public class RCM {
 
 
 	
-	class Transaction{
+	class Transaction implements Serializable {
 		private Date transactionDate;
 		private int flagCoupon;
 		public ArrayList<Item> transactionItems = new ArrayList<Item>();

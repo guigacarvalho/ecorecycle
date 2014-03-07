@@ -28,15 +28,11 @@ import ecorecycle.RMOS;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/*import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeSelectionModel;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-*/
 
 @SuppressWarnings("serial")
 public class AdminUI extends JPanel implements  ActionListener, 
@@ -52,7 +48,7 @@ public class AdminUI extends JPanel implements  ActionListener,
     final static JFXPanel fxPanel = new JFXPanel();
     static DefaultTableModel defTableModel;
 	private JTable table;
-	Container topMenuContainer, loginContainer;
+	Container topMenuContainer, loginContainer, statsContainer;
 	
     String[] columnNames = {"ID",
             "Location",
@@ -77,60 +73,17 @@ public class AdminUI extends JPanel implements  ActionListener,
 	private int selectedRcm;
 	private  String [] usr= {"Guilherme", "Ankit"};
 	private String passwd = "admin";
+    private static final Logger fLogger = Logger.getLogger(EcoReSystem.class.getPackage().getName());
+
 	
 	
 	//Class constructor
-	public AdminUI (final RMOS station) {
+	public AdminUI (RMOS stationRecovered) {
 		//Basic Layout Definitions
 		super(new FlowLayout());
+		AdminUI.station=stationRecovered;
 		this.setBackground(Color.WHITE);
-
-
-		
-		JLabel logo = loadImage(IMG_PATHS[7]);
-//		logo.setBounds(200, 200, 100, 50);
-		
-		
-		loginL = new JLabel("Login");
-		loginL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
-		loginL.setForeground(new Color(83,88,95));
-		loginL.setPreferredSize(new Dimension(50,20));
-		
-		loginTF = new JTextField();
-		loginTF.setPreferredSize(new Dimension(100,20));
-		
-		passwdL = new JLabel("Password");
-		passwdL.setBorder(null);
-		passwdL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
-		passwdL.setForeground(new Color(83,88,95));
-		passwdL.setPreferredSize(new Dimension(70,20));
-
-		passwdTF = new JPasswordField();
-		passwdTF.setPreferredSize(new Dimension(100,20));
-		passwdTF.setSize(100,20);
-	    submitBt = new JButton("Submit");
-	    submitBt.setBorder(null);
-	    submitBt.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
-	    submitBt.setForeground(new Color(42,195,207));
-	    submitBt.addActionListener(this);
-
-		loginStatusL = new JLabel("");
-		loginStatusL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
-		loginStatusL.setForeground(new Color(83,88,95));
-		loginStatusL.setPreferredSize(new Dimension(240,20));
-
-
-		loginContainer = new Container();
-		loginContainer.setLayout(new FlowLayout());
-		loginContainer.add(logo);
-		loginContainer.add(loginL);
-		loginContainer.add(loginTF);
-		loginContainer.add(passwdL);
-		loginContainer.add(passwdTF);
-	    loginContainer.add(submitBt);
-		loginContainer.add(loginStatusL);
-		add(loginContainer);
-
+		loadLoginScreen();
 		
 	}
 	private boolean authenticate() {
@@ -149,7 +102,6 @@ public class AdminUI extends JPanel implements  ActionListener,
 	loadTable();
 
 	loadMenuBar();
-
 
 	//Creating the header
 	JLabel header = loadImage(IMG_PATHS[0]);
@@ -196,13 +148,57 @@ public class AdminUI extends JPanel implements  ActionListener,
 	add(lowLabels);
 	add(tabbedPane);
     
-    Platform.runLater(new Runnable() {
-        @Override
-        public void run() {
-            initFX(fxPanel);
-        }
-   });
-}
+		Platform.runLater(new Runnable() {
+		    @Override
+		    public void run() {
+		        initFX(fxPanel);
+		    	}
+		});
+	}
+	private void loadLoginScreen(){
+		
+		JLabel logo = loadImage(IMG_PATHS[7]);
+		
+		loginL = new JLabel("Login");
+		loginL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
+		loginL.setForeground(new Color(83,88,95));
+		loginL.setPreferredSize(new Dimension(50,20));
+		
+		loginTF = new JTextField();
+		loginTF.setPreferredSize(new Dimension(100,20));
+		
+		passwdL = new JLabel("Password");
+		passwdL.setBorder(null);
+		passwdL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
+		passwdL.setForeground(new Color(83,88,95));
+		passwdL.setPreferredSize(new Dimension(70,20));
+
+		passwdTF = new JPasswordField();
+		passwdTF.setPreferredSize(new Dimension(100,20));
+		passwdTF.setSize(100,20);
+	    submitBt = new JButton("Submit");
+	    submitBt.setBorder(null);
+	    submitBt.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
+	    submitBt.setForeground(new Color(42,195,207));
+	    submitBt.addActionListener(this);
+
+		loginStatusL = new JLabel("");
+		loginStatusL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
+		loginStatusL.setForeground(new Color(83,88,95));
+		loginStatusL.setPreferredSize(new Dimension(240,20));
+
+
+		loginContainer = new Container();
+		loginContainer.setLayout(new FlowLayout());
+		loginContainer.add(logo);
+		loginContainer.add(loginL);
+		loginContainer.add(loginTF);
+		loginContainer.add(passwdL);
+		loginContainer.add(passwdTF);
+	    loginContainer.add(submitBt);
+		loginContainer.add(loginStatusL);
+		add(loginContainer);
+	}
 		private void loadMenuBar() {
 		    //Creating the menu bar
 		    newMachine = new JButton("New Machine");
@@ -270,14 +266,7 @@ public class AdminUI extends JPanel implements  ActionListener,
 
 		private void loadTable() {
 			//JTable initialization
-			Object[] newData = {0,
-	    			station.getMachines().get(0).location,
-	    			station.getMachines().get(0).presentCapacity, 
-	    			station.getMachines().get(0).money,
-	    			station.getMachines().get(0).Status,
-	    			station.getMachines().get(0).listOfItems.size(),
-	    			station.getMachines().get(0).getLastEmptied(),
-	    			};
+			Object[] newData = {0,"","","","","",""};
 		    Object[][] data = {newData};
 
 		    // Preventing the user input
@@ -305,9 +294,9 @@ public class AdminUI extends JPanel implements  ActionListener,
 	            }
 	        });
 		    defTableModel.addTableModelListener(this);	    
-
+		    defTableModel.removeRow(0);
 	        //Populating the table
-		    for (int i =1; i< station.getMachines().size(); i++) {
+		    for (int i =0; i< station.getMachines().size(); i++) {
 		    	Object[] newData1 = {i,
 		    			station.getMachine(i).location,
 		    			station.getMachine(i).presentCapacity, 
@@ -319,6 +308,49 @@ public class AdminUI extends JPanel implements  ActionListener,
 		    }		
 	}
 
+		private void loadStats() {
+
+//			mostUsedL = new JLabel("Most Used machine in the last _ days");
+//			mostUsedL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
+//			mostUsedL.setForeground(new Color(83,88,95));
+//			mostUsedL.setPreferredSize(new Dimension(50,20));
+//			
+//			mostUsedTF = new JTextField();
+//			mostUsedTF.setPreferredSize(new Dimension(100,20));
+//			
+//			passwdL = new JLabel("Password");
+//			passwdL.setBorder(null);
+//			passwdL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
+//			passwdL.setForeground(new Color(83,88,95));
+//			passwdL.setPreferredSize(new Dimension(70,20));
+
+			passwdTF = new JPasswordField();
+			passwdTF.setPreferredSize(new Dimension(100,20));
+			passwdTF.setSize(100,20);
+		    submitBt = new JButton("Submit");
+		    submitBt.setBorder(null);
+		    submitBt.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
+		    submitBt.setForeground(new Color(42,195,207));
+		    submitBt.addActionListener(this);
+
+			loginStatusL = new JLabel("");
+			loginStatusL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
+			loginStatusL.setForeground(new Color(83,88,95));
+			loginStatusL.setPreferredSize(new Dimension(240,20));
+
+
+			statsContainer = new Container();
+			statsContainer .setLayout(new GridLayout(2,2));
+			statsContainer .add(loginL);
+			statsContainer .add(loginTF);
+			statsContainer .add(passwdL);
+			statsContainer .add(passwdTF);
+			statsContainer .add(submitBt);
+			statsContainer .add(loginStatusL);
+			add(statsContainer );
+			
+		}
+		
 		@SuppressWarnings("static-access")
 		public void actionPerformed(ActionEvent e) {
 		       if(e.getSource() == newMachine) {
@@ -562,19 +594,10 @@ public class AdminUI extends JPanel implements  ActionListener,
        		station.returnMostUsedMachine().location);
 
 		}
-
-		@Override
-		public void windowOpened(WindowEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
-
+		
 		@Override
 		public void windowClosing(WindowEvent e) {
-			// TODO Auto-generated method stub
-			System.out.print("WindowListener method called: windowClosing.");
-		        //A pause so user can see the message before
-		        //the window actually closes.
+			System.out.print("Closing Window.\n");
 		        ActionListener task = new ActionListener() {
 		            boolean alreadyDisposed = false;
 		            public void actionPerformed(ActionEvent e) {
@@ -585,40 +608,31 @@ public class AdminUI extends JPanel implements  ActionListener,
 		            }
 		        };
 		        Timer timer = new Timer(500, task); //fire every half second
-		        timer.setInitialDelay(2000);        //first delay 2 seconds
 		        timer.setRepeats(false);
 		        timer.start();
-		}
-
-		@Override
-		public void windowClosed(WindowEvent e) {
-			// TODO Auto-generated method stub
-			System.out.print("closed");
-			
-		}
-
-		@Override
-		public void windowIconified(WindowEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void windowDeiconified(WindowEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void windowActivated(WindowEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void windowDeactivated(WindowEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
+		      //serialize the List
+		        try (
+		          OutputStream file = new FileOutputStream("data.ser");
+		          OutputStream buffer = new BufferedOutputStream(file);
+		          ObjectOutput output = new ObjectOutputStream(buffer);
+		        ){
+		          output.writeObject(station);
+		        }  
+		        catch(IOException ex){
+		          fLogger.log(Level.SEVERE, "Cannot perform output.", ex);
+		        }
 		
+		}
+		@Override
+		public void windowOpened(WindowEvent e) {}
+		@Override
+		public void windowClosed(WindowEvent e) {}
+		@Override
+		public void windowIconified(WindowEvent e) {}
+		@Override
+		public void windowDeiconified(WindowEvent e) {}
+		@Override
+		public void windowActivated(WindowEvent e) {}
+		@Override
+		public void windowDeactivated(WindowEvent e) {}		
 }
