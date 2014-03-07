@@ -19,6 +19,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
@@ -29,6 +30,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -269,6 +271,8 @@ public class AdminUI extends JPanel implements  ActionListener,
 			Object[] newData = {0,"","","","","",""};
 		    Object[][] data = {newData};
 
+		    
+		    
 		    // Preventing the user input
 		    defTableModel = new DefaultTableModel(data,columnNames) {
 		    	  public boolean isCellEditable(int row, int column) {
@@ -306,6 +310,7 @@ public class AdminUI extends JPanel implements  ActionListener,
 		    			station.getMachine(i).getLastEmptied()};
 	    			defTableModel.addRow(newData1);	    	
 		    }		
+		    table.setDefaultRenderer(Object.class, new NumberCellRenderer());
 	}
 
 		private void loadStats() {
@@ -401,26 +406,28 @@ public class AdminUI extends JPanel implements  ActionListener,
 					    	   JTextField [] listPrices= new JTextField[9];
 					    	   JCheckBox [] checkItem = new JCheckBox[9]; 
 					    	   int i=0,j =0;
-
+					    	   //add all checkboxes
+					    	   for (i=0; i < station.getAvailableItemTypes().length; i++) {
+			    				   checkItem[i]= new JCheckBox(RMOS.getAvailableItemTypes()[i].itemType,false);
+			    				   listPrices[i]=new JTextField(RMOS.getAvailableItemTypes()[i].price.toString());
+					    	   }
+					    	   
+					    	   //check items/checkboxes already added
 					    	   for (i=0; i < station.getAvailableItemTypes().length; i++) {
 					    		   for(j=0; j< station.getMachine(selectedRcm).listOfItems.size();j++) {
 					    			   if(station.getMachine(selectedRcm).listOfItems.get(j).getId()==RMOS.getAvailableItemTypes()[i].getId()) {
-//					    				   System.out.print("+ "+station.getMachine(selectedRcm).listOfItems.get(j).getId()+" = "+RMOS.getAvailableItemTypes()[i].getId()+" \n");
 					    				   checkItem[i]= new JCheckBox(RMOS.getAvailableItemTypes()[i].itemType,true);
 					    				   listPrices[i]=new JTextField(station.getMachine(selectedRcm).listOfItems.get(j).price.toString());
 					    				   break;
 					    			   }
 					    			   else {
-//				    				   System.out.print("- "+station.getMachine(selectedRcm).listOfItems.get(j).getId()+" = "+RMOS.getAvailableItemTypes()[i].getId()+" \n");
 					    				   checkItem[i]= new JCheckBox(RMOS.getAvailableItemTypes()[i].itemType,false);
 					    				   listPrices[i]=new JTextField(RMOS.getAvailableItemTypes()[i].price.toString());
 					    			   }
 					    		   }
-
 					    		   
 					    		   myPanel1.add(checkItem[i]);
 					    		   myPanel1.add(listPrices[i]);
-//						    	   System.out.printf("%d",i);
 					    	   }
 					    	   	   
 					    	   int result1 = JOptionPane.showConfirmDialog(null, myPanel1, 
@@ -634,5 +641,26 @@ public class AdminUI extends JPanel implements  ActionListener,
 		@Override
 		public void windowActivated(WindowEvent e) {}
 		@Override
-		public void windowDeactivated(WindowEvent e) {}		
+		public void windowDeactivated(WindowEvent e) {}	
+
+		
+		//Utility Class
+		public class NumberCellRenderer extends DefaultTableCellRenderer {
+
+		    DecimalFormat numberFormat = new DecimalFormat("#,###.##;(#,###.##)");
+
+		    @Override
+		    public Component getTableCellRendererComponent(JTable jTable, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+		        Component c = super.getTableCellRendererComponent(jTable, value, isSelected, hasFocus, row, column);
+		        if (c instanceof JLabel && value instanceof Number) {
+		            JLabel label = (JLabel) c;
+		            Number num = (Number) value;
+		            String text = numberFormat.format(num);
+		            label.setText(text);
+
+		            label.setForeground(num.doubleValue() < 0 ? Color.RED : Color.BLACK);
+		        }
+		        return c;
+		    }
+		}
 }
