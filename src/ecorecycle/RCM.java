@@ -14,10 +14,11 @@ public class RCM implements Serializable {
 	public ArrayList<Item> listOfItems = new ArrayList<Item>();
 	public Double capacity;
 	public Double presentCapacity;
-	public Date lastEmptied;
+	public ArrayList<Date> lastEmptied = new ArrayList<Date>();
 	public String Status;
 	public Double money;
 	private Double totalWt=0.0;
+	
 
 
 	public ArrayList<Transaction> listOfTransaction = new ArrayList<Transaction>();
@@ -34,6 +35,7 @@ public class RCM implements Serializable {
 		private int flagCoupon;
 		public ArrayList<Item> transactionItems = new ArrayList<Item>();
 		public Double totalWeight = 0.0;
+		public Double totalAmount;
 		Transaction(){
 			this.setTransactionDate(new Date());
 			this.setFlagCoupon(UserUI.coupon);
@@ -42,6 +44,11 @@ public class RCM implements Serializable {
 			Double totalAmount = 0.0;
 			for(int i=0; i < transactionItems.size(); i++)
 				totalAmount += transactionItems.get(i).price*transactionItems.get(i).weight;
+			this.totalAmount=totalAmount;
+			if(totalAmount > money){
+				this.setFlagCoupon(1);
+				//TODO REflect change on the UI
+			}
 			return totalAmount;
 		}
 		public int getTotalQtd() {
@@ -60,6 +67,7 @@ public class RCM implements Serializable {
 		public void setFlagCoupon(int flagCoupon) {
 			this.flagCoupon = flagCoupon;
 		}
+		
 	}
 	
 	public RCM(String location, Double  capacity, Double  money){
@@ -68,19 +76,14 @@ public class RCM implements Serializable {
 		this.Status = "Disabled";
 		this.presentCapacity = capacity;
 		currentTransaction = new Transaction();
-		this.lastEmptied = new Date();
+		this.lastEmptied.add(new Date());
 		this.money = money;
 		this.location = location;
 		this.setCoupons(0);
 	}
 	
 	public Date getLastEmptied() {
-		return lastEmptied;
-	}
-
-	public void setLastEmptied(Date lastEmptied) {
-		this.lastEmptied = lastEmptied;
-		this.presentCapacity = capacity;
+		return lastEmptied.get(lastEmptied.size()-1);
 	}
 
 	public ArrayList<Item> showRecyclableItemList(){
@@ -160,12 +163,16 @@ public class RCM implements Serializable {
 //		System.out.print("= Computing total weight.. This transaction had "+			 System.out.print("= Computing total weight.. This transaction had "+ +". \n"); +". \n");
 		return totalWt;
 	}
-	public void finishTransaction () {
-		this.listOfTransaction.add(currentTransaction);
-		this.money-=currentTransaction.getTotalAmount();
-		this.currentTransaction = new Transaction();
-	}
 
+
+public void finishTransaction () {
+	this.listOfTransaction.add(currentTransaction);
+	if(currentTransaction.getTotalAmount() <= money){
+		this.money-=currentTransaction.getTotalAmount();
+	}
+	
+	this.currentTransaction = new Transaction();
+}
 	public void setCoupons(int coupons) {
 		this.coupons = coupons;
 	}
@@ -210,6 +217,68 @@ public class RCM implements Serializable {
 		}
 		return n;
 	}
+	public Double getTotalValueOfCoupons(int days){
+		Double couponAmount = 0.0;
+		Date myDate = null;
+		Calendar calendar = Calendar.getInstance();
+		//calendar.setTime(myDate);
+		calendar.add(Calendar.DAY_OF_YEAR, -days);
+		Date newDate = calendar.getTime();
+		for(int i=0;i < this.listOfTransaction.size();i++){
+			if(this.listOfTransaction.get(i).flagCoupon == 1 && this.listOfTransaction.get(i).transactionDate.after(newDate)){
+				couponAmount += this.listOfTransaction.get(i).totalAmount;
+			}
+		}
+		return couponAmount;
+	}
+	
+	public Double getTotalValueOfCash(int days){
+		Double cashAmount = 0.0;
+		Date myDate = null;
+		Calendar calendar = Calendar.getInstance();
+		//calendar.setTime(myDate);
+		calendar.add(Calendar.DAY_OF_YEAR, -days);
+		Date newDate = calendar.getTime();
+		for(int i=0;i < this.listOfTransaction.size();i++){
+			if(this.listOfTransaction.get(i).flagCoupon == 0 && this.listOfTransaction.get(i).transactionDate.after(newDate)){
+				cashAmount += this.listOfTransaction.get(i).totalAmount;
+			}
+		}
+		return cashAmount;
+	}
+	public int getNumberOfTimesMachineEmptied(int days){
+		Date myDate = null;
+		int n=0;
+		Calendar calendar = Calendar.getInstance();
+		//calendar.setTime(myDate);
+		calendar.add(Calendar.DAY_OF_YEAR, -days);
+		Date newDate = calendar.getTime();
+		for(int i=0; i< lastEmptied.size(); i++){
+			if(lastEmptied.get(i).after(newDate)){
+				n++;
+			}
+		}
+		return n;
+	}
+	public int getNumberOfItems(int days){
+		Date myDate = null;
+		int totalItems =0;
+		Calendar calendar = Calendar.getInstance();
+		//calendar.setTime(myDate);
+		calendar.add(Calendar.DAY_OF_YEAR, -days);
+		Date newDate = calendar.getTime();
+		for(int i=0;i<this.listOfTransaction.size(); i++){
+			if(this.listOfTransaction.get(i).transactionDate.after(newDate)){
+				totalItems += this.listOfTransaction.get(i).transactionItems.size();
+			}
+		}
+		return totalItems;
+	}
+	public void setLastEmptied(Date lastEmptied) {
+		this.lastEmptied.add(lastEmptied);
+		this.presentCapacity = capacity;
+	}
+	
 }
 
 

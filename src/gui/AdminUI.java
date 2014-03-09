@@ -21,7 +21,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
+
 
 import ecorecycle.RCM;
 import ecorecycle.RMOS;
@@ -46,7 +46,7 @@ public class AdminUI extends JPanel implements  ActionListener,
 	JTextArea transactionItemsTextArea;
 	JTextField loginTF, passwdTF;
 	JLabel totalAmount,machinesLabel, statsLabel, itemTypes, loginL, passwdL, loginStatusL;
-    JLabel [] separator = new JLabel[10];
+    JLabel [] separator = new JLabel[16];
     final static JFXPanel fxPanel = new JFXPanel();
     static DefaultTableModel defTableModel;
 	private JTable table;
@@ -116,7 +116,41 @@ public class AdminUI extends JPanel implements  ActionListener,
 	
 	Container lowLabels = new Container();
 	lowLabels.setLayout(new BoxLayout(lowLabels, BoxLayout.LINE_AXIS));
+
+	String[] graphReportSelector = { "Graphics", "Report" };
+	String[] RCMSelector = { "All RCMs", "Selected RCM" };
+	String[] daysSelector = { "Day", "Week", "Month", "# of days" };
+
+	//Create the combo box, select item at index 4.
+	//Indices start at 0, so 4 specifies the pig.
+	JComboBox graphReportCB = new JComboBox(graphReportSelector);
+	graphReportCB.setSelectedIndex(0);
+	graphReportCB.addActionListener(this);
+
+	JComboBox RCMCB = new JComboBox(RCMSelector);
+	RCMCB.setSelectedIndex(0);
+	RCMCB.addActionListener(this);
+
+	JComboBox dayCB = new JComboBox(daysSelector);
+	dayCB.setSelectedIndex(0);
+	dayCB.addActionListener(this);
+	
+	separator[11].setText("|");
+	separator[13].setText("|");
+	separator[12].setText("|");
+	separator[14].setText("|");
+	
 	lowLabels.add(itemTypes);
+	lowLabels.add(separator[13]);	
+	lowLabels.add(graphReportCB);
+	lowLabels.add(separator[11]);	
+	lowLabels.add(RCMCB);
+	lowLabels.add(separator[12]);	
+	lowLabels.add(dayCB);
+	lowLabels.add(separator[14]);	
+	
+	
+	
 	
 	Container centerContainer = new Container();
 	centerContainer.setLayout(new BoxLayout(centerContainer, BoxLayout.LINE_AXIS));
@@ -131,12 +165,10 @@ public class AdminUI extends JPanel implements  ActionListener,
 	statsContainer .setLayout(new GridLayout(2,2));
 	
     JTabbedPane tabbedPane = new JTabbedPane();
-    tabbedPane.addTab("General", null, fxPanel, "Presents the general statistics");
-    tabbedPane.addTab("RCM", null, statsContainer, "Presents the statistics about a specific RCM");
-    tabbedPane.addTab("Money", null, separator[7], "Presents the statistics about money");
-    tabbedPane.addTab("Recyclable Items", null, separator[8], "Presents the statistics about Recyclable Items");
-    tabbedPane.addTab("Other", null, separator[9], "Presents other statistics");
-    //tabbedPane.setBackground(Color.WHITE);
+    tabbedPane.addTab("Weight", null, fxPanel, "Presents the general statistics");
+    tabbedPane.addTab("Money", null, statsContainer, "Presents the statistics about a specific RCM");
+    tabbedPane.addTab("Items", null, separator[7], "Presents the statistics about money");
+    tabbedPane.addTab("Transactions", null, separator[9], "Presents the statistics about money");
 
 	tableContainer.add(topMenuContainer);
 	tableContainer.setLayout(new BoxLayout(tableContainer, BoxLayout.PAGE_AXIS));
@@ -319,10 +351,10 @@ public class AdminUI extends JPanel implements  ActionListener,
 //			mostUsedL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
 //			mostUsedL.setForeground(new Color(83,88,95));
 //			mostUsedL.setPreferredSize(new Dimension(50,20));
-//			
+			
 //			mostUsedTF = new JTextField();
 //			mostUsedTF.setPreferredSize(new Dimension(100,20));
-//			
+
 //			passwdL = new JLabel("Password");
 //			passwdL.setBorder(null);
 //			passwdL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
@@ -644,9 +676,8 @@ public class AdminUI extends JPanel implements  ActionListener,
 		public void windowDeactivated(WindowEvent e) {}	
 
 		
-		//Utility Class
+		//Utility Class to format the table numbers properly
 		public class NumberCellRenderer extends DefaultTableCellRenderer {
-
 		    DecimalFormat numberFormat = new DecimalFormat("#,###.##;(#,###.##)");
 
 		    @Override
@@ -657,8 +688,6 @@ public class AdminUI extends JPanel implements  ActionListener,
 		            Number num = (Number) value;
 		            String text = numberFormat.format(num);
 		            label.setText(text);
-
-		            label.setForeground(num.doubleValue() < 0 ? Color.RED : Color.BLACK);
 		        }
 		        return c;
 		    }

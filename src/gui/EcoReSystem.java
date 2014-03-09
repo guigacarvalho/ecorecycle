@@ -11,7 +11,6 @@ public class EcoReSystem {
 
 	public static void main(String[] args) {
   	
-
 		RMOS recoveredStation = new RMOS();
         //deserialize the quarks.ser file
         try(
