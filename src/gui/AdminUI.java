@@ -115,7 +115,7 @@ public class AdminUI extends JPanel implements  ActionListener,
 	topLabels.add(machinesLabel);
 	
 	Container lowLabels = new Container();
-	lowLabels.setLayout(new BoxLayout(lowLabels, BoxLayout.LINE_AXIS));
+	lowLabels.setLayout(new BoxLayout(lowLabels, BoxLayout.X_AXIS));
 
 	String[] graphReportSelector = { "Graphics", "Report" };
 	String[] RCMSelector = { "All RCMs", "Selected RCM" };
@@ -345,48 +345,18 @@ public class AdminUI extends JPanel implements  ActionListener,
 		    table.setDefaultRenderer(Object.class, new NumberCellRenderer());
 	}
 
-		private void loadStats() {
+		private void loadStatsReports() {
 
-//			mostUsedL = new JLabel("Most Used machine in the last _ days");
-//			mostUsedL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
-//			mostUsedL.setForeground(new Color(83,88,95));
-//			mostUsedL.setPreferredSize(new Dimension(50,20));
-			
-//			mostUsedTF = new JTextField();
-//			mostUsedTF.setPreferredSize(new Dimension(100,20));
-
-//			passwdL = new JLabel("Password");
-//			passwdL.setBorder(null);
-//			passwdL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
-//			passwdL.setForeground(new Color(83,88,95));
-//			passwdL.setPreferredSize(new Dimension(70,20));
-
-			passwdTF = new JPasswordField();
-			passwdTF.setPreferredSize(new Dimension(100,20));
-			passwdTF.setSize(100,20);
-		    submitBt = new JButton("Submit");
-		    submitBt.setBorder(null);
-		    submitBt.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
-		    submitBt.setForeground(new Color(42,195,207));
-		    submitBt.addActionListener(this);
-
-			loginStatusL = new JLabel("");
-			loginStatusL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
-			loginStatusL.setForeground(new Color(83,88,95));
-			loginStatusL.setPreferredSize(new Dimension(240,20));
-
-
-			statsContainer = new Container();
-			statsContainer .setLayout(new GridLayout(2,2));
-			statsContainer .add(loginL);
-			statsContainer .add(loginTF);
-			statsContainer .add(passwdL);
-			statsContainer .add(passwdTF);
-			statsContainer .add(submitBt);
-			statsContainer .add(loginStatusL);
 			add(statsContainer );
 			
 		}
+
+		private void loadStatsGraphs() {
+
+			add(statsContainer );
+			
+		}
+
 		
 		@SuppressWarnings("static-access")
 		public void actionPerformed(ActionEvent e) {
@@ -395,16 +365,12 @@ public class AdminUI extends JPanel implements  ActionListener,
 					JLabel machineLabel ,LocationLabel , capacityLabel, MoneyLabel;
 					//JButton Add, Cancel;
 				    	   JPanel myPanel = new JPanel(new GridLayout(4,2));
-				    	   machineLabel = new JLabel("Machine ID");
 				    	   LocationLabel = new JLabel("Location");
 				    	   capacityLabel = new JLabel("Capacity");
 				    	   MoneyLabel = new JLabel("Money");
-				    	   machineId = new JTextField();
 				    	   Location = new JTextField();
 				    	   capacity = new JTextField();
 				    	   Money = new JTextField();
-				    	   myPanel.add(machineLabel);
-				    	   myPanel.add(machineId);
 				    	   myPanel.add(LocationLabel);
 				    	   myPanel.add(Location);
 				    	   myPanel.add(capacityLabel);
@@ -415,7 +381,6 @@ public class AdminUI extends JPanel implements  ActionListener,
 				    	   int result = JOptionPane.showConfirmDialog(null, myPanel, 
 					               "Create New RCM", JOptionPane.OK_CANCEL_OPTION);
 				    	   if (result == JOptionPane.OK_OPTION) {
-//				    		   String s1 = machineId.getText();
 				    		   String s2 = Location.getText();
 				    		   Double s3 = Double.valueOf(capacity.getText());
 				    		   Double s4 = Double.valueOf(Money.getText());
@@ -526,11 +491,11 @@ public class AdminUI extends JPanel implements  ActionListener,
     }
     static void initFX(JFXPanel fxPanel) {
         // This method is invoked on the JavaFX thread
-        Scene scene = createScene();
+        Scene scene = createBarGraph("Weight",0);
         fxPanel.setScene(scene);
     }
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	private static Scene createScene() {
+	private static Scene createBarGraph(String statistic, int numberOfDays ) {
 
     	final NumberAxis yAxis = new NumberAxis();
                 
@@ -541,7 +506,14 @@ public class AdminUI extends JPanel implements  ActionListener,
         
         XYChart.Series series = new XYChart.Series();
 	        for(int i=0; i<station.getMachines().size();i++) {
-		        series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalWeightOfMachine()));
+	        	if (statistic.equals(new String("Weight"))) {
+	        		if(numberOfDays==0)
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalWeightOfMachine()));
+	        		else
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalWeightOfMachine()));
+	        	} else if (statistic.equals(new String("Money"))) {
+	        		
+	        	}
 	        }
         bc.getData().addAll(series);	
         Scene  scene  = new Scene(bc,750,150);

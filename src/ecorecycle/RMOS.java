@@ -75,7 +75,7 @@ public class RMOS implements Serializable {
 	}
 	
 	public Date getLastDateEmptied(RCM obj){
-		return obj.lastEmptied;
+		return obj.lastEmptied.get(obj.listOfTransaction.size()-1);
 	}
 	
 	public RCM returnMostUsedMachine(){
