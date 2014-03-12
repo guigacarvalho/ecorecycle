@@ -30,7 +30,7 @@ public class RCM implements Serializable {
 
 
 	
-	class Transaction implements Serializable {
+	public class Transaction implements Serializable {
 		private Date transactionDate;
 		private int flagCoupon;
 		public ArrayList<Item> transactionItems = new ArrayList<Item>();
