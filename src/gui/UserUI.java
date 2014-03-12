@@ -31,7 +31,7 @@ public class UserUI extends JPanel implements  ItemListener, ActionListener {
 			"./img/buttons/Slice-"};
 
 	private final String switchableButtons[] = {
-			"cuiCashButton","cuiCouponButton","cuiUnitKgButton","cuiUnitLbButton"};
+			"cuiCashButton","cuiCouponButton","cuiUnitLbButton","cuiUnitKgButton"};
 	
 	JFrame frame;
 	
@@ -80,6 +80,13 @@ public class UserUI extends JPanel implements  ItemListener, ActionListener {
         transactionLogScrollPane.setPreferredSize(transactionItemsTextArea.getSize());;
 		transactionItemsTextArea.setEditable(false);
 		displayRates();
+		 for(int i=0;i< rcmObj.currentTransaction.transactionItems.size();i++){
+				double itemPrice = (rcmObj.currentTransaction.transactionItems.get(i).weight * rcmObj.currentTransaction.transactionItems.get(i).price);
+				 transactionItemsTextArea.setText(transactionItemsTextArea.getText()+
+			 			   String.format("%.2f "+ units[weight] + " * $ %.3f  = $ %.2f | "+rcmObj.currentTransaction.transactionItems.get(i).itemType+"\n",
+			 					  rcmObj.currentTransaction.transactionItems.get(i).weight, 
+			 					   rcmObj.currentTransaction.transactionItems.get(i).price, itemPrice ));
+			}
 
 		JLabel dolarSign = new JLabel ("$");
 		dolarSign.setFont(new Font("Lobster 1.4", Font.BOLD, 36));
@@ -93,6 +100,11 @@ public class UserUI extends JPanel implements  ItemListener, ActionListener {
 		totalAmount.setFont(new Font("Lobster 1.4", Font.BOLD, 36));
 		totalAmount.setForeground(new Color(83,88,95));		
 		totalAmount.setPreferredSize(new Dimension(100,50));
+		
+		 for(int i=0;i< rcmObj.currentTransaction.transactionItems.size();i++){
+				double itemPrice = Double.parseDouble(totalAmount.getText())+(rcmObj.currentTransaction.transactionItems.get(i).weight * rcmObj.currentTransaction.transactionItems.get(i).price);
+				totalAmount.setText(String.format("%.2f ", itemPrice ));
+			}
 		
 		centerContainer.add(centerLeftContainer);
 		centerContainer.add(new Box.Filler(new Dimension(20,20),new Dimension(20,20),new Dimension(20,20)));
@@ -202,6 +214,15 @@ public class UserUI extends JPanel implements  ItemListener, ActionListener {
 			            e1.printStackTrace();
 		    		}
 		   		displayRates();
+		   		System.out.println(rcmObj.currentTransaction.transactionItems.size());
+		   		for(int i=0;i < rcmObj.currentTransaction.transactionItems.size();i++){
+		   		double weightLb = rcmObj.currentTransaction.transactionItems.get(i).weight*0.45;
+		    	   double itemPrice = (weightLb * rcmObj.currentTransaction.transactionItems.get(i).price/0.45);
+		    	   transactionItemsTextArea.setText(transactionItemsTextArea.getText()+
+ 			   String.format("%.2f "+ units[weight] + " * $ %.3f  = $ %.2f | "+rcmObj.currentTransaction.transactionItems.get(i).itemType+"\n",
+ 					  rcmObj.currentTransaction.transactionItems.get(i).weight*0.45, 
+ 					   rcmObj.currentTransaction.transactionItems.get(i).price, itemPrice ));
+		   		}
 	   		}
 	   		else if (weight==1) {//lb to kg 
 	   			weight=0;
@@ -215,6 +236,14 @@ public class UserUI extends JPanel implements  ItemListener, ActionListener {
 			            e1.printStackTrace();
 		    		}
 	   			displayRates();
+	   			for(int i=0;i < rcmObj.currentTransaction.transactionItems.size();i++){
+			   		double weightLb = rcmObj.currentTransaction.transactionItems.get(i).weight;
+			    	   double itemPrice = (weightLb * rcmObj.currentTransaction.transactionItems.get(i).price);
+			    	   transactionItemsTextArea.setText(transactionItemsTextArea.getText()+
+	 			   String.format("%.2f "+ units[weight] + " * $ %.3f  = $ %.2f | "+rcmObj.currentTransaction.transactionItems.get(i).itemType+"\n",
+	 					  rcmObj.currentTransaction.transactionItems.get(i).weight, 
+	 					   rcmObj.currentTransaction.transactionItems.get(i).price, itemPrice ));
+	   			}
 			}
 	   }
    }
