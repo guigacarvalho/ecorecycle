@@ -2,45 +2,55 @@ package ecorecycle;
 import gui.AdminUI;
 import gui.UserUI;
 
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.swing.JOptionPane;
 
-public class RCM {
+public class RCM implements Serializable {
 
 	public int machineId;
 	public String location;
 	public ArrayList<Item> listOfItems = new ArrayList<Item>();
 	public Double capacity;
 	public Double presentCapacity;
-	public Date lastEmptied;
+	public ArrayList<Date> lastEmptied = new ArrayList<Date>();
 	public String Status;
 	public Double money;
 	private Double totalWt=0.0;
+	
 
 
 	public ArrayList<Transaction> listOfTransaction = new ArrayList<Transaction>();
 	public Transaction currentTransaction;
-	private int coupons=0;
+	public int coupons=0;
+	public int weight=0;
 	private Double moneyForSession;
-	public static double recyclableQtd[] = {		0.0, 		0.0,		0.0,		0.0,		0.0,		0.0,	0.0,		0.0,		0.0 };
-	public static double recyclableAmount[] = {		0.0, 		0.0,		0.0,		0.0,		0.0,		0.0,	0.0,		0.0,		0.0 };
+	public double recyclableQtd[] = {		0.0, 		0.0,		0.0,		0.0,		0.0,		0.0,	0.0,		0.0,		0.0 };
+	public double recyclableAmount[] = {		0.0, 		0.0,		0.0,		0.0,		0.0,		0.0,	0.0,		0.0,		0.0 };
 
 
 	
-	class Transaction{
+	public class Transaction implements Serializable {
 		private Date transactionDate;
 		private int flagCoupon;
 		public ArrayList<Item> transactionItems = new ArrayList<Item>();
 		public Double totalWeight = 0.0;
+		public Double totalAmount;
 		Transaction(){
 			this.setTransactionDate(new Date());
-			this.setFlagCoupon(UserUI.coupon);
+			this.setFlagCoupon(coupons);
 		}
 		public Double getTotalAmount() {
 			Double totalAmount = 0.0;
 			for(int i=0; i < transactionItems.size(); i++)
 				totalAmount += transactionItems.get(i).price*transactionItems.get(i).weight;
+			this.totalAmount=totalAmount;
+			if(totalAmount > money){
+				this.setFlagCoupon(1);
+				//TODO REflect change on the UI
+			}
 			return totalAmount;
 		}
 		public int getTotalQtd() {
@@ -59,6 +69,7 @@ public class RCM {
 		public void setFlagCoupon(int flagCoupon) {
 			this.flagCoupon = flagCoupon;
 		}
+		
 	}
 	
 	public RCM(String location, Double  capacity, Double  money){
@@ -67,19 +78,14 @@ public class RCM {
 		this.Status = "Disabled";
 		this.presentCapacity = capacity;
 		currentTransaction = new Transaction();
-		this.lastEmptied = new Date();
+		this.lastEmptied.add(new Date());
 		this.money = money;
 		this.location = location;
 		this.setCoupons(0);
 	}
 	
 	public Date getLastEmptied() {
-		return lastEmptied;
-	}
-
-	public void setLastEmptied(Date lastEmptied) {
-		this.lastEmptied = lastEmptied;
-		this.presentCapacity = capacity;
+		return lastEmptied.get(lastEmptied.size()-1);
 	}
 
 	public ArrayList<Item> showRecyclableItemList(){
@@ -87,14 +93,11 @@ public class RCM {
 	}	
 	
 	public void dropRecyclableItem(Item recyclableItem){
-		 if(validateItem(recyclableItem)) {
 			 this.currentTransaction.transactionItems.add(recyclableItem);
 			 this.currentTransaction.totalWeight+=recyclableItem.weight;
 			 //decrement current capacity
 			 this.presentCapacity -= recyclableItem.weight;
-			 System.out.print("= Dropping "+recyclableItem.weight+" of "+ recyclableItem.itemType +" in RCM "+this.location+"\n");
-		 }
-		 
+			 System.out.print("= Dropping "+recyclableItem.weight+" of "+ recyclableItem.itemType +" in RCM "+this.location+"\n");		 
 	 }
 	
 	public void dropRandomRecyclableItem(){
@@ -112,7 +115,7 @@ public class RCM {
 	 
 	 public Boolean validateItem(Item recyclableItem){
 		 //Test Machine Status
-		 if(Status != "Enabled"){
+		 if(!this.Status.equals("Enabled")){
 //    	   JOptionPane.showInternalMessageDialog(null, " = Error: Can't drop item because the RCM is not enabled.\n", "Alert", JOptionPane.ERROR_MESSAGE); 
 			 System.out.printf("= Error: Can't drop item because the RCM is not enabled.\n");
 			 return false;
@@ -159,41 +162,32 @@ public class RCM {
 //		System.out.print("= Computing total weight.. This transaction had "+			 System.out.print("= Computing total weight.. This transaction had "+ +". \n"); +". \n");
 		return totalWt;
 	}
-	public void finishTransaction () {
-		this.listOfTransaction.add(currentTransaction);
-		this.money-=currentTransaction.getTotalAmount();
-		this.currentTransaction = new Transaction();
-	}
-
-	public void setCoupons(int coupons) {
-		this.coupons = coupons;
-	}
-	public double getTotalValueOfMachinePerDay(){
-		double totalValue=0;
-		for(int i=0;i <listOfTransaction.size();i++){
-			if(this.listOfTransaction.get(i).transactionDate == new Date()){
-				totalValue =+ this.listOfTransaction.get(i).getTotalAmount();
-			}
-			 
-		}
-		return totalValue;
-	}
-	
-	public double getTotalValueOfMachinePerWeek(){
-		double totalValue=0;
+	public double getWeightofMachine(int days){
 		Date myDate = null;
+		totalWt = 0.0;
 		Calendar calendar = Calendar.getInstance();
 		//calendar.setTime(myDate);
-		calendar.add(Calendar.DAY_OF_YEAR, -7);
+		calendar.add(Calendar.DAY_OF_YEAR, -days);
 		Date newDate = calendar.getTime();
-		//System.out.println(newDate);
 		for(int i=0;i <listOfTransaction.size();i++){
-			if(this.listOfTransaction.get(i).transactionDate.after(newDate) && this.listOfTransaction.get(i).transactionDate.before(new Date())){
-				totalValue =+ this.listOfTransaction.get(i).getTotalAmount();
+			if(this.listOfTransaction.get(i).transactionDate.after(newDate)){
+				totalWt = totalWt+ this.listOfTransaction.get(i).totalWeight;;
 			}
-			 
 		}
-		return totalValue;
+		return totalWt;
+	}
+
+
+public void finishTransaction () {
+	this.listOfTransaction.add(currentTransaction);
+	if(currentTransaction.getTotalAmount() <= money){
+		this.money-=currentTransaction.getTotalAmount();
+	}
+	
+	this.currentTransaction = new Transaction();
+}
+	public void setCoupons(int coupons) {
+		this.coupons = coupons;
 	}
 	public int getNumberOfTransaction(int days){
 		Date myDate = null;
@@ -209,6 +203,73 @@ public class RCM {
 		}
 		return n;
 	}
+	public Double getTotalValueOfCoupons(int days){
+		Double couponAmount = 0.0;
+		Date myDate = null;
+		Calendar calendar = Calendar.getInstance();
+		//calendar.setTime(myDate);
+		calendar.add(Calendar.DAY_OF_YEAR, -days);
+		Date newDate = calendar.getTime();
+		for(int i=0;i < this.listOfTransaction.size();i++){
+			if(this.listOfTransaction.get(i).flagCoupon == 1 && this.listOfTransaction.get(i).transactionDate.after(newDate)){
+				couponAmount += this.listOfTransaction.get(i).totalAmount;
+			}
+		}
+		return couponAmount;
+	}
+	
+	public Double getTotalValueOfCash(int days){
+		Double cashAmount = 0.0;
+		Date myDate = null;
+		Calendar calendar = Calendar.getInstance();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy MMM dd");
+		//calendar.setTime(myDate);
+		calendar.add(Calendar.DAY_OF_YEAR, -days);
+		Date newDate = calendar.getTime();
+		System.out.println("\n= Start Date : " + sdf.format(calendar.getTime()));
+
+		for(int i=0;i < this.listOfTransaction.size();i++){
+			if(this.listOfTransaction.get(i).flagCoupon == 0 && this.listOfTransaction.get(i).transactionDate.after(newDate)){
+				cashAmount += this.listOfTransaction.get(i).totalAmount;
+				System.out.println("\n =Date : " + sdf.format(this.listOfTransaction.get(i).transactionDate)+" $"+this.listOfTransaction.get(i).totalAmount);
+				
+			}
+		}
+		return cashAmount;
+	}
+	public int getNumberOfTimesMachineEmptied(int days){
+		Date myDate = null;
+		int n=0;
+		Calendar calendar = Calendar.getInstance();
+		//calendar.setTime(myDate);
+		calendar.add(Calendar.DAY_OF_YEAR, -days);
+		Date newDate = calendar.getTime();
+		for(int i=0; i< lastEmptied.size(); i++){
+			if(lastEmptied.get(i).after(newDate)){
+				n++;
+			}
+		}
+		return n;
+	}
+	public int getNumberOfItems(int days){
+		Date myDate = null;
+		int totalItems =0;
+		Calendar calendar = Calendar.getInstance();
+		//calendar.setTime(myDate);
+		calendar.add(Calendar.DAY_OF_YEAR, -days);
+		Date newDate = calendar.getTime();
+		for(int i=0;i<this.listOfTransaction.size(); i++){
+			if(this.listOfTransaction.get(i).transactionDate.after(newDate)){
+				totalItems += this.listOfTransaction.get(i).transactionItems.size();
+			}
+		}
+		return totalItems;
+	}
+	public void setLastEmptied(Date lastEmptied) {
+		this.lastEmptied.add(lastEmptied);
+		this.presentCapacity = capacity;
+	}
+	
 }
 
 

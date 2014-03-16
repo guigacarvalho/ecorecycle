@@ -5,7 +5,7 @@ import java.util.*;
 
 public class RMOS implements Serializable {	
 	
-	private static ArrayList<RCM> allRCMs = new ArrayList<RCM>();
+	private ArrayList<RCM> allRCMs = new ArrayList<RCM>();
 	
 	private static Item availableItemTypes[]=new Item[9];
 	
@@ -75,7 +75,7 @@ public class RMOS implements Serializable {
 	}
 	
 	public Date getLastDateEmptied(RCM obj){
-		return obj.lastEmptied;
+		return obj.lastEmptied.get(obj.listOfTransaction.size()-1);
 	}
 	
 	public RCM returnMostUsedMachine(){

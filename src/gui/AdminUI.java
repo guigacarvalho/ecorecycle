@@ -15,12 +15,14 @@ import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 
 import ecorecycle.RCM;
 import ecorecycle.RMOS;
@@ -28,15 +30,12 @@ import ecorecycle.RMOS;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/*import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeSelectionModel;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-*/
 
 @SuppressWarnings("serial")
 public class AdminUI extends JPanel implements  ActionListener, 
@@ -47,12 +46,19 @@ public class AdminUI extends JPanel implements  ActionListener,
 	JButton newMachine, removeMachine, changeItem, addItem,activateRCM,loadMachine, EmptyMachine,submitBt ;
 	JTextArea transactionItemsTextArea;
 	JTextField loginTF, passwdTF;
+	JComboBox graphReportCB, RCMCB;
+	static JComboBox dayCB;
 	JLabel totalAmount,machinesLabel, statsLabel, itemTypes, loginL, passwdL, loginStatusL;
-    JLabel [] separator = new JLabel[10];
-    final static JFXPanel fxPanel = new JFXPanel();
+    JLabel [] separator = new JLabel[16];
+    final static JFXPanel weight = new JFXPanel();
+    final static JFXPanel money = new JFXPanel();
+    final static JFXPanel items = new JFXPanel();
+    final static JFXPanel transaction = new JFXPanel();
     static DefaultTableModel defTableModel;
+    static int numberOfDays=0, selectedTab=0;
 	private JTable table;
-	Container topMenuContainer, loginContainer;
+	Container topMenuContainer, loginContainer, statsContainer;
+	JTabbedPane tabbedPane;
 	
     String[] columnNames = {"ID",
             "Location",
@@ -77,19 +83,125 @@ public class AdminUI extends JPanel implements  ActionListener,
 	private int selectedRcm;
 	private  String [] usr= {"Guilherme", "Ankit"};
 	private String passwd = "admin";
+    private static final Logger fLogger = Logger.getLogger(EcoReSystem.class.getPackage().getName());
+
 	
 	
 	//Class constructor
-	public AdminUI (final RMOS station) {
+	public AdminUI (RMOS stationRecovered) {
 		//Basic Layout Definitions
 		super(new FlowLayout());
+		AdminUI.station=stationRecovered;
 		this.setBackground(Color.WHITE);
+		loadLoginScreen();
+		
+	}
+	private boolean authenticate() {
+		if ((loginTF.getText().contentEquals(usr[1]) ||
+				loginTF.getText().contentEquals(usr[0]) ) 
+				&& passwdTF.getText().contentEquals(passwd)  ) {
+			System.out.print("Login OK!\n");			
+			return true;
+		}
+		else {
+			System.out.print("= Login not OK!\n");
+			return false;
+		}
+	}
+	private void loadAdminPanel() {
+	loadTable();
 
+	loadMenuBar();
 
+	//Creating the header
+	JLabel header = loadImage(IMG_PATHS[0]);
+	machinesLabel = loadImage(IMG_PATHS[1]);
+	itemTypes = loadImage(IMG_PATHS[4]);
+	
+	Container topLabels = new Container();
+	topLabels.setLayout(new BoxLayout(topLabels, BoxLayout.LINE_AXIS));
+	topLabels.add(machinesLabel);
+	
+	Container lowLabels = new Container();
+	lowLabels.setLayout(new BoxLayout(lowLabels, BoxLayout.X_AXIS));
+
+	String[] graphReportSelector = { "Graphics", "Report" };
+	String[] RCMSelector = { "All RCMs", "Selected RCM" };
+	String[] daysSelector = { "All time", "Day", "Week", "Month", "# of days" };
+
+	//Create the combo box, select item at index 4.
+	//Indices start at 0, so 4 specifies the pig.
+	graphReportCB = new JComboBox(graphReportSelector);
+	graphReportCB.setSelectedIndex(0);
+	graphReportCB.addActionListener(this);
+
+	RCMCB = new JComboBox(RCMSelector);
+	RCMCB.setSelectedIndex(0);
+	RCMCB.addActionListener(this);
+
+	dayCB = new JComboBox(daysSelector);
+	dayCB.setSelectedIndex(0);
+	dayCB.addActionListener(this);
+	
+	separator[11].setText("|");
+	separator[13].setText("|");
+	separator[12].setText("|");
+	separator[14].setText("|             ");
+	
+	lowLabels.add(itemTypes);
+	lowLabels.add(separator[13]);	
+	lowLabels.add(graphReportCB);
+	lowLabels.add(separator[11]);	
+	lowLabels.add(RCMCB);
+	lowLabels.add(separator[12]);	
+	lowLabels.add(dayCB);
+	lowLabels.add(separator[14]);
+	
+	Container centerContainer = new Container();
+	centerContainer.setLayout(new BoxLayout(centerContainer, BoxLayout.LINE_AXIS));
+	
+    JScrollPane tableScrollPane = new JScrollPane(table);
+	tableScrollPane .setPreferredSize(new Dimension(460,100));
+
+	centerContainer.add(new Box.Filler(new Dimension(20,20),new Dimension(20,20),new Dimension(20,20)));
+	Container tableContainer = new Container();
+	
+	Container statsContainer = new Container();
+	statsContainer .setLayout(new GridLayout(2,2));
+	
+    tabbedPane = new JTabbedPane();
+    tabbedPane.addTab("Weight", null, weight, "Presents the general statistics");
+    tabbedPane.addTab("Money", null, money, "Presents the statistics about a specific RCM");
+    tabbedPane.addTab("Items", null, items, "Presents the statistics about money");
+    tabbedPane.addTab("Transactions", null, transaction, "Presents the statistics about money");
+    tabbedPane.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent e) {
+            selectedTab = tabbedPane.getSelectedIndex();
+            refreshGraphic();
+        }
+    });
+	tableContainer.add(topMenuContainer);
+	tableContainer.setLayout(new BoxLayout(tableContainer, BoxLayout.PAGE_AXIS));
+	tableContainer.add(table.getTableHeader(), BorderLayout.PAGE_START);
+	tableContainer.add(tableScrollPane , BorderLayout.CENTER);
+	centerContainer.add(tableContainer);
+	
+	add(header);
+	add(topLabels);
+	add(centerContainer);		
+	add(lowLabels);
+	add(tabbedPane);
+    
+		Platform.runLater(new Runnable() {
+		    @Override
+		    public void run() {
+		        initFX(weight);
+		    	}
+		});
+	}
+	private void loadLoginScreen(){
 		
 		JLabel logo = loadImage(IMG_PATHS[7]);
-//		logo.setBounds(200, 200, 100, 50);
-		
 		
 		loginL = new JLabel("Login");
 		loginL.setFont(new Font("Lobster 1.4", Font.BOLD, 16));
@@ -130,79 +242,7 @@ public class AdminUI extends JPanel implements  ActionListener,
 	    loginContainer.add(submitBt);
 		loginContainer.add(loginStatusL);
 		add(loginContainer);
-
-		
 	}
-	private boolean authenticate() {
-		if ((loginTF.getText().contentEquals(usr[1]) ||
-				loginTF.getText().contentEquals(usr[0]) ) 
-				&& passwdTF.getText().contentEquals(passwd)  ) {
-			System.out.print("Login OK!\n");			
-			return true;
-		}
-		else {
-			System.out.print("= Login not OK!\n");
-			return false;
-		}
-	}
-	private void loadAdminPanel() {
-	loadTable();
-
-	loadMenuBar();
-
-
-	//Creating the header
-	JLabel header = loadImage(IMG_PATHS[0]);
-	machinesLabel = loadImage(IMG_PATHS[1]);
-	itemTypes = loadImage(IMG_PATHS[4]);
-	
-	Container topLabels = new Container();
-	topLabels.setLayout(new BoxLayout(topLabels, BoxLayout.LINE_AXIS));
-	topLabels.add(machinesLabel);
-	
-	Container lowLabels = new Container();
-	lowLabels.setLayout(new BoxLayout(lowLabels, BoxLayout.LINE_AXIS));
-	lowLabels.add(itemTypes);
-	
-	Container centerContainer = new Container();
-	centerContainer.setLayout(new BoxLayout(centerContainer, BoxLayout.LINE_AXIS));
-	
-    JScrollPane tableScrollPane = new JScrollPane(table);
-	tableScrollPane .setPreferredSize(new Dimension(460,100));
-
-	centerContainer.add(new Box.Filler(new Dimension(20,20),new Dimension(20,20),new Dimension(20,20)));
-	Container tableContainer = new Container();
-	
-	Container statsContainer = new Container();
-	statsContainer .setLayout(new GridLayout(2,2));
-	
-    JTabbedPane tabbedPane = new JTabbedPane();
-    tabbedPane.addTab("General", null, fxPanel, "Presents the general statistics");
-    tabbedPane.addTab("RCM", null, statsContainer, "Presents the statistics about a specific RCM");
-    tabbedPane.addTab("Money", null, separator[7], "Presents the statistics about money");
-    tabbedPane.addTab("Recyclable Items", null, separator[8], "Presents the statistics about Recyclable Items");
-    tabbedPane.addTab("Other", null, separator[9], "Presents other statistics");
-    //tabbedPane.setBackground(Color.WHITE);
-
-	tableContainer.add(topMenuContainer);
-	tableContainer.setLayout(new BoxLayout(tableContainer, BoxLayout.PAGE_AXIS));
-	tableContainer.add(table.getTableHeader(), BorderLayout.PAGE_START);
-	tableContainer.add(tableScrollPane , BorderLayout.CENTER);
-	centerContainer.add(tableContainer);
-	
-	add(header);
-	add(topLabels);
-	add(centerContainer);		
-	add(lowLabels);
-	add(tabbedPane);
-    
-    Platform.runLater(new Runnable() {
-        @Override
-        public void run() {
-            initFX(fxPanel);
-        }
-   });
-}
 		private void loadMenuBar() {
 		    //Creating the menu bar
 		    newMachine = new JButton("New Machine");
@@ -270,16 +310,9 @@ public class AdminUI extends JPanel implements  ActionListener,
 
 		private void loadTable() {
 			//JTable initialization
-			Object[] newData = {0,
-	    			station.getMachines().get(0).location,
-	    			station.getMachines().get(0).presentCapacity, 
-	    			station.getMachines().get(0).money,
-	    			station.getMachines().get(0).Status,
-	    			station.getMachines().get(0).listOfItems.size(),
-	    			station.getMachines().get(0).getLastEmptied(),
-	    			};
+			Object[] newData = {0,"","","","","",""};
 		    Object[][] data = {newData};
-
+		    
 		    // Preventing the user input
 		    defTableModel = new DefaultTableModel(data,columnNames) {
 		    	  public boolean isCellEditable(int row, int column) {
@@ -298,16 +331,17 @@ public class AdminUI extends JPanel implements  ActionListener,
 	                if (e.getValueIsAdjusting()) return;
 	                ListSelectionModel lsm = (ListSelectionModel)e.getSource();
 	                if (lsm.isSelectionEmpty()) {
-	                	selectedRcm =-1;
+	                	selectedRcm = 0;
 	                } else {
 	                    selectedRcm = lsm.getMinSelectionIndex();
 	                }
 	            }
 	        });
 		    defTableModel.addTableModelListener(this);	    
-
+		    defTableModel.removeRow(0);
+		    
 	        //Populating the table
-		    for (int i =1; i< station.getMachines().size(); i++) {
+		    for (int i =0; i< station.getMachines().size(); i++) {
 		    	Object[] newData1 = {i,
 		    			station.getMachine(i).location,
 		    			station.getMachine(i).presentCapacity, 
@@ -317,8 +351,22 @@ public class AdminUI extends JPanel implements  ActionListener,
 		    			station.getMachine(i).getLastEmptied()};
 	    			defTableModel.addRow(newData1);	    	
 		    }		
+		    table.setDefaultRenderer(Object.class, new NumberCellRenderer());
 	}
 
+		private void loadStatsReports() {
+
+			add(statsContainer );
+			
+		}
+
+		private void loadStatsGraphs() {
+
+			add(statsContainer );
+			
+		}
+
+		
 		@SuppressWarnings("static-access")
 		public void actionPerformed(ActionEvent e) {
 		       if(e.getSource() == newMachine) {
@@ -326,16 +374,12 @@ public class AdminUI extends JPanel implements  ActionListener,
 					JLabel machineLabel ,LocationLabel , capacityLabel, MoneyLabel;
 					//JButton Add, Cancel;
 				    	   JPanel myPanel = new JPanel(new GridLayout(4,2));
-				    	   machineLabel = new JLabel("Machine ID");
 				    	   LocationLabel = new JLabel("Location");
 				    	   capacityLabel = new JLabel("Capacity");
 				    	   MoneyLabel = new JLabel("Money");
-				    	   machineId = new JTextField();
 				    	   Location = new JTextField();
 				    	   capacity = new JTextField();
 				    	   Money = new JTextField();
-				    	   myPanel.add(machineLabel);
-				    	   myPanel.add(machineId);
 				    	   myPanel.add(LocationLabel);
 				    	   myPanel.add(Location);
 				    	   myPanel.add(capacityLabel);
@@ -346,7 +390,6 @@ public class AdminUI extends JPanel implements  ActionListener,
 				    	   int result = JOptionPane.showConfirmDialog(null, myPanel, 
 					               "Create New RCM", JOptionPane.OK_CANCEL_OPTION);
 				    	   if (result == JOptionPane.OK_OPTION) {
-//				    		   String s1 = machineId.getText();
 				    		   String s2 = Location.getText();
 				    		   Double s3 = Double.valueOf(capacity.getText());
 				    		   Double s4 = Double.valueOf(Money.getText());
@@ -369,26 +412,28 @@ public class AdminUI extends JPanel implements  ActionListener,
 					    	   JTextField [] listPrices= new JTextField[9];
 					    	   JCheckBox [] checkItem = new JCheckBox[9]; 
 					    	   int i=0,j =0;
-
+					    	   //add all checkboxes
+					    	   for (i=0; i < station.getAvailableItemTypes().length; i++) {
+			    				   checkItem[i]= new JCheckBox(RMOS.getAvailableItemTypes()[i].itemType,false);
+			    				   listPrices[i]=new JTextField(RMOS.getAvailableItemTypes()[i].price.toString());
+					    	   }
+					    	   
+					    	   //check items/checkboxes already added
 					    	   for (i=0; i < station.getAvailableItemTypes().length; i++) {
 					    		   for(j=0; j< station.getMachine(selectedRcm).listOfItems.size();j++) {
 					    			   if(station.getMachine(selectedRcm).listOfItems.get(j).getId()==RMOS.getAvailableItemTypes()[i].getId()) {
-//					    				   System.out.print("+ "+station.getMachine(selectedRcm).listOfItems.get(j).getId()+" = "+RMOS.getAvailableItemTypes()[i].getId()+" \n");
 					    				   checkItem[i]= new JCheckBox(RMOS.getAvailableItemTypes()[i].itemType,true);
 					    				   listPrices[i]=new JTextField(station.getMachine(selectedRcm).listOfItems.get(j).price.toString());
 					    				   break;
 					    			   }
 					    			   else {
-//				    				   System.out.print("- "+station.getMachine(selectedRcm).listOfItems.get(j).getId()+" = "+RMOS.getAvailableItemTypes()[i].getId()+" \n");
 					    				   checkItem[i]= new JCheckBox(RMOS.getAvailableItemTypes()[i].itemType,false);
 					    				   listPrices[i]=new JTextField(RMOS.getAvailableItemTypes()[i].price.toString());
 					    			   }
 					    		   }
-
 					    		   
 					    		   myPanel1.add(checkItem[i]);
 					    		   myPanel1.add(listPrices[i]);
-//						    	   System.out.printf("%d",i);
 					    	   }
 					    	   	   
 					    	   int result1 = JOptionPane.showConfirmDialog(null, myPanel1, 
@@ -431,6 +476,18 @@ public class AdminUI extends JPanel implements  ActionListener,
 								 loginStatusL.setText("Try a valid user/passwd combination.");
 							 }
 						 }
+						 else if(e.getSource() == RCMCB){
+							 System.out.print(RCMCB.getSelectedIndex());
+							 refreshGraphic();
+						 }
+						 else if(e.getSource() == dayCB){
+							 System.out.print(dayCB.getSelectedIndex());
+							 refreshGraphic();
+						 }
+						 else if(e.getSource() == graphReportCB){
+							 System.out.print(graphReportCB.getSelectedIndex());
+							 refreshGraphic();
+						 }
 		       }
    
 		
@@ -455,11 +512,11 @@ public class AdminUI extends JPanel implements  ActionListener,
     }
     static void initFX(JFXPanel fxPanel) {
         // This method is invoked on the JavaFX thread
-        Scene scene = createScene();
+        Scene scene = createBarGraph();
         fxPanel.setScene(scene);
     }
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	private static Scene createScene() {
+	private static Scene createBarGraph() {
 
     	final NumberAxis yAxis = new NumberAxis();
                 
@@ -470,7 +527,71 @@ public class AdminUI extends JPanel implements  ActionListener,
         
         XYChart.Series series = new XYChart.Series();
 	        for(int i=0; i<station.getMachines().size();i++) {
-		        series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalWeightOfMachine()));
+	        	if (selectedTab==0) {// weight is selected
+	        		if(dayCB.getSelectedIndex()==0) {// All Time
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(365*10)));	        			
+	        		}
+	        		else if(dayCB.getSelectedIndex()==1) {// Day
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(1)));
+        			}
+	        		else if(dayCB.getSelectedIndex()==2) {// Week
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(7)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==3) {// Month
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(30)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(numberOfDays)));
+	        		}
+	        	} else if (selectedTab==1) {// money is selected
+	        		if(dayCB.getSelectedIndex()==0) {// All Time
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(365*10)));	        			
+	        		}
+	        		else if(dayCB.getSelectedIndex()==1) {// Day
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(1)));
+        			}
+	        		else if(dayCB.getSelectedIndex()==2) {// Week
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(7)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==3) {// Month
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(30)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(numberOfDays)));
+	        		}
+	        	} else if (selectedTab==2) {//Items is selected
+	        		if(dayCB.getSelectedIndex()==0) {// All Time
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(365*10)));	        			
+	        		}
+	        		else if(dayCB.getSelectedIndex()==1) {// Day
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(1)));
+        			}
+	        		else if(dayCB.getSelectedIndex()==2) {// Week
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(7)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==3) {// Month
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(30)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(numberOfDays)));
+	        		}
+	        	} else if (selectedTab==3) {// Transactions is selected
+	        		if(dayCB.getSelectedIndex()==0) {// All Time
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(365*10)));	        			
+	        		}
+	        		else if(dayCB.getSelectedIndex()==1) {// Day
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(1)));
+        			}
+	        		else if(dayCB.getSelectedIndex()==2) {// Week
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(7)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==3) {// Month
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(30)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(numberOfDays)));
+	        		}
+        		}
 	        }
         bc.getData().addAll(series);	
         Scene  scene  = new Scene(bc,750,150);
@@ -550,31 +671,30 @@ public class AdminUI extends JPanel implements  ActionListener,
 			Platform.runLater(new Runnable() {
 	            @Override
 	            public void run() {
-	                initFX(fxPanel);
+	            	if(selectedTab==0)
+	            		initFX(weight);
+	            	else if(selectedTab==1)
+	            		initFX(money);
+	            	else if(selectedTab==2)
+	            		initFX(items);
+	            	else if(selectedTab==3)
+	            		initFX(transaction);
+
 	            }
 	       });
 		}
 		public static void refreshStatistics () {
-       		System.out.print(station.getMachine(0).getNumberOfTransaction(7)+""+
-       		station.getMachine(0).getTotalValueOfMachinePerDay()+
-       		station.getMachine(0).getTotalValueOfMachinePerWeek()+
-       		station.getMaxTransactionMachine(7)+
-       		station.returnMostUsedMachine().location);
-
+//       		System.out.print(station.getMachine(0).getNumberOfTransaction(7)+""+
+//       		station.getMachine(0).getTotalValueOfMachinePerDay()+
+//       		station.getMachine(0).getTotalValueOfMachinePerWeek()+
+//       		station.getMaxTransactionMachine(7)+
+//       		station.returnMostUsedMachine().location);
+//
 		}
-
-		@Override
-		public void windowOpened(WindowEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
-
+		
 		@Override
 		public void windowClosing(WindowEvent e) {
-			// TODO Auto-generated method stub
-			System.out.print("WindowListener method called: windowClosing.");
-		        //A pause so user can see the message before
-		        //the window actually closes.
+			System.out.print("Closing Window.\n");
 		        ActionListener task = new ActionListener() {
 		            boolean alreadyDisposed = false;
 		            public void actionPerformed(ActionEvent e) {
@@ -585,40 +705,49 @@ public class AdminUI extends JPanel implements  ActionListener,
 		            }
 		        };
 		        Timer timer = new Timer(500, task); //fire every half second
-		        timer.setInitialDelay(2000);        //first delay 2 seconds
 		        timer.setRepeats(false);
 		        timer.start();
-		}
-
-		@Override
-		public void windowClosed(WindowEvent e) {
-			// TODO Auto-generated method stub
-			System.out.print("closed");
-			
-		}
-
-		@Override
-		public void windowIconified(WindowEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void windowDeiconified(WindowEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void windowActivated(WindowEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
-
-		@Override
-		public void windowDeactivated(WindowEvent e) {
-			// TODO Auto-generated method stub
-			
-		}
+		      //serialize the List
+		        try (
+		          OutputStream file = new FileOutputStream("data.ser");
+		          OutputStream buffer = new BufferedOutputStream(file);
+		          ObjectOutput output = new ObjectOutputStream(buffer);
+		        ){
+		          output.writeObject(station);
+		        }  
+		        catch(IOException ex){
+		          fLogger.log(Level.SEVERE, "Cannot perform output.", ex);
+		        }
 		
+		}
+		@Override
+		public void windowOpened(WindowEvent e) {}
+		@Override
+		public void windowClosed(WindowEvent e) {}
+		@Override
+		public void windowIconified(WindowEvent e) {}
+		@Override
+		public void windowDeiconified(WindowEvent e) {}
+		@Override
+		public void windowActivated(WindowEvent e) {}
+		@Override
+		public void windowDeactivated(WindowEvent e) {}	
+
+		
+		//Utility Class to format the table numbers properly
+		public class NumberCellRenderer extends DefaultTableCellRenderer {
+		    DecimalFormat numberFormat = new DecimalFormat("#,###.##;(#,###.##)");
+
+		    @Override
+		    public Component getTableCellRendererComponent(JTable jTable, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+		        Component c = super.getTableCellRendererComponent(jTable, value, isSelected, hasFocus, row, column);
+		        if (c instanceof JLabel && value instanceof Number) {
+		            JLabel label = (JLabel) c;
+		            Number num = (Number) value;
+		            String text = numberFormat.format(num);
+		            label.setText(text);
+		        }
+		        return c;
+		    }
+		}
 }
