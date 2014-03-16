@@ -15,13 +15,14 @@ import javax.swing.JFrame;
 import javax.swing.JTabbedPane;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-
 
 import ecorecycle.RCM;
 import ecorecycle.RMOS;
@@ -45,12 +46,19 @@ public class AdminUI extends JPanel implements  ActionListener,
 	JButton newMachine, removeMachine, changeItem, addItem,activateRCM,loadMachine, EmptyMachine,submitBt ;
 	JTextArea transactionItemsTextArea;
 	JTextField loginTF, passwdTF;
+	JComboBox graphReportCB, RCMCB;
+	static JComboBox dayCB;
 	JLabel totalAmount,machinesLabel, statsLabel, itemTypes, loginL, passwdL, loginStatusL;
     JLabel [] separator = new JLabel[16];
-    final static JFXPanel fxPanel = new JFXPanel();
+    final static JFXPanel weight = new JFXPanel();
+    final static JFXPanel money = new JFXPanel();
+    final static JFXPanel items = new JFXPanel();
+    final static JFXPanel transaction = new JFXPanel();
     static DefaultTableModel defTableModel;
+    static int numberOfDays=0, selectedTab=0;
 	private JTable table;
 	Container topMenuContainer, loginContainer, statsContainer;
+	JTabbedPane tabbedPane;
 	
     String[] columnNames = {"ID",
             "Location",
@@ -119,26 +127,26 @@ public class AdminUI extends JPanel implements  ActionListener,
 
 	String[] graphReportSelector = { "Graphics", "Report" };
 	String[] RCMSelector = { "All RCMs", "Selected RCM" };
-	String[] daysSelector = { "Day", "Week", "Month", "# of days" };
+	String[] daysSelector = { "All time", "Day", "Week", "Month", "# of days" };
 
 	//Create the combo box, select item at index 4.
 	//Indices start at 0, so 4 specifies the pig.
-	JComboBox graphReportCB = new JComboBox(graphReportSelector);
+	graphReportCB = new JComboBox(graphReportSelector);
 	graphReportCB.setSelectedIndex(0);
 	graphReportCB.addActionListener(this);
 
-	JComboBox RCMCB = new JComboBox(RCMSelector);
+	RCMCB = new JComboBox(RCMSelector);
 	RCMCB.setSelectedIndex(0);
 	RCMCB.addActionListener(this);
 
-	JComboBox dayCB = new JComboBox(daysSelector);
+	dayCB = new JComboBox(daysSelector);
 	dayCB.setSelectedIndex(0);
 	dayCB.addActionListener(this);
 	
 	separator[11].setText("|");
 	separator[13].setText("|");
 	separator[12].setText("|");
-	separator[14].setText("|");
+	separator[14].setText("|             ");
 	
 	lowLabels.add(itemTypes);
 	lowLabels.add(separator[13]);	
@@ -147,10 +155,7 @@ public class AdminUI extends JPanel implements  ActionListener,
 	lowLabels.add(RCMCB);
 	lowLabels.add(separator[12]);	
 	lowLabels.add(dayCB);
-	lowLabels.add(separator[14]);	
-	
-	
-	
+	lowLabels.add(separator[14]);
 	
 	Container centerContainer = new Container();
 	centerContainer.setLayout(new BoxLayout(centerContainer, BoxLayout.LINE_AXIS));
@@ -164,12 +169,17 @@ public class AdminUI extends JPanel implements  ActionListener,
 	Container statsContainer = new Container();
 	statsContainer .setLayout(new GridLayout(2,2));
 	
-    JTabbedPane tabbedPane = new JTabbedPane();
-    tabbedPane.addTab("Weight", null, fxPanel, "Presents the general statistics");
-    tabbedPane.addTab("Money", null, statsContainer, "Presents the statistics about a specific RCM");
-    tabbedPane.addTab("Items", null, separator[7], "Presents the statistics about money");
-    tabbedPane.addTab("Transactions", null, separator[9], "Presents the statistics about money");
-
+    tabbedPane = new JTabbedPane();
+    tabbedPane.addTab("Weight", null, weight, "Presents the general statistics");
+    tabbedPane.addTab("Money", null, money, "Presents the statistics about a specific RCM");
+    tabbedPane.addTab("Items", null, items, "Presents the statistics about money");
+    tabbedPane.addTab("Transactions", null, transaction, "Presents the statistics about money");
+    tabbedPane.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent e) {
+            selectedTab = tabbedPane.getSelectedIndex();
+            refreshGraphic();
+        }
+    });
 	tableContainer.add(topMenuContainer);
 	tableContainer.setLayout(new BoxLayout(tableContainer, BoxLayout.PAGE_AXIS));
 	tableContainer.add(table.getTableHeader(), BorderLayout.PAGE_START);
@@ -185,7 +195,7 @@ public class AdminUI extends JPanel implements  ActionListener,
 		Platform.runLater(new Runnable() {
 		    @Override
 		    public void run() {
-		        initFX(fxPanel);
+		        initFX(weight);
 		    	}
 		});
 	}
@@ -302,8 +312,6 @@ public class AdminUI extends JPanel implements  ActionListener,
 			//JTable initialization
 			Object[] newData = {0,"","","","","",""};
 		    Object[][] data = {newData};
-
-		    
 		    
 		    // Preventing the user input
 		    defTableModel = new DefaultTableModel(data,columnNames) {
@@ -323,7 +331,7 @@ public class AdminUI extends JPanel implements  ActionListener,
 	                if (e.getValueIsAdjusting()) return;
 	                ListSelectionModel lsm = (ListSelectionModel)e.getSource();
 	                if (lsm.isSelectionEmpty()) {
-	                	selectedRcm =-1;
+	                	selectedRcm = 0;
 	                } else {
 	                    selectedRcm = lsm.getMinSelectionIndex();
 	                }
@@ -331,6 +339,7 @@ public class AdminUI extends JPanel implements  ActionListener,
 	        });
 		    defTableModel.addTableModelListener(this);	    
 		    defTableModel.removeRow(0);
+		    
 	        //Populating the table
 		    for (int i =0; i< station.getMachines().size(); i++) {
 		    	Object[] newData1 = {i,
@@ -467,6 +476,18 @@ public class AdminUI extends JPanel implements  ActionListener,
 								 loginStatusL.setText("Try a valid user/passwd combination.");
 							 }
 						 }
+						 else if(e.getSource() == RCMCB){
+							 System.out.print(RCMCB.getSelectedIndex());
+							 refreshGraphic();
+						 }
+						 else if(e.getSource() == dayCB){
+							 System.out.print(dayCB.getSelectedIndex());
+							 refreshGraphic();
+						 }
+						 else if(e.getSource() == graphReportCB){
+							 System.out.print(graphReportCB.getSelectedIndex());
+							 refreshGraphic();
+						 }
 		       }
    
 		
@@ -491,11 +512,11 @@ public class AdminUI extends JPanel implements  ActionListener,
     }
     static void initFX(JFXPanel fxPanel) {
         // This method is invoked on the JavaFX thread
-        Scene scene = createBarGraph("Weight",0);
+        Scene scene = createBarGraph();
         fxPanel.setScene(scene);
     }
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	private static Scene createBarGraph(String statistic, int numberOfDays ) {
+	private static Scene createBarGraph() {
 
     	final NumberAxis yAxis = new NumberAxis();
                 
@@ -506,13 +527,42 @@ public class AdminUI extends JPanel implements  ActionListener,
         
         XYChart.Series series = new XYChart.Series();
 	        for(int i=0; i<station.getMachines().size();i++) {
-	        	if (statistic.equals(new String("Weight"))) {
-	        		if(numberOfDays==0)
+	        	if (selectedTab==0) {// weight is selected
+	        		if(dayCB.getSelectedIndex()==0)
 	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalWeightOfMachine()));
 	        		else
+	        			if(dayCB.getSelectedIndex()==1)
+	        				series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalWeightOfMachine()));
+	        			
+	        	} else if (selectedTab==1) {
+	        		if(dayCB.getSelectedIndex()==0) {
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(10)));
+	        			System.out.print("All Time"+station.getMachine(i).getTotalValueOfCash(1));
+	        			
+	        		}
+	        		else if(dayCB.getSelectedIndex()==1) {
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(1)));
+		        			System.out.print("Day"+station.getMachine(i).getTotalValueOfCash(1));
+		        			 	
+        			}
+	        		else if(dayCB.getSelectedIndex()==2) {
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(7)));
+		        			System.out.print("Week"+station.getMachine(i).getTotalValueOfCash(1));		
+        			}
+	        	} else if (selectedTab==2) {
+	        		if(numberOfDays==0)
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(10)));
+	        		else
 	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalWeightOfMachine()));
-	        	} else if (statistic.equals(new String("Money"))) {
-	        		
+	        	} else if (selectedTab==3) {
+	        		if(numberOfDays==0)
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(1000)));
+	        		else {
+	        			if(dayCB.getSelectedIndex()==1)
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfMachinePerDay()));
+	        			if(dayCB.getSelectedIndex()==2)
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfMachinePerWeek()));
+	        		}
 	        	}
 	        }
         bc.getData().addAll(series);	
@@ -593,7 +643,15 @@ public class AdminUI extends JPanel implements  ActionListener,
 			Platform.runLater(new Runnable() {
 	            @Override
 	            public void run() {
-	                initFX(fxPanel);
+	            	if(selectedTab==0)
+	            		initFX(weight);
+	            	else if(selectedTab==1)
+	            		initFX(money);
+	            	else if(selectedTab==2)
+	            		initFX(items);
+	            	else if(selectedTab==3)
+	            		initFX(transaction);
+
 	            }
 	       });
 		}

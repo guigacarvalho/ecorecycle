@@ -23,10 +23,11 @@ public class RCM implements Serializable {
 
 	public ArrayList<Transaction> listOfTransaction = new ArrayList<Transaction>();
 	public Transaction currentTransaction;
-	private int coupons=0;
+	public int coupons=0;
+	public int weight=0;
 	private Double moneyForSession;
-	public static double recyclableQtd[] = {		0.0, 		0.0,		0.0,		0.0,		0.0,		0.0,	0.0,		0.0,		0.0 };
-	public static double recyclableAmount[] = {		0.0, 		0.0,		0.0,		0.0,		0.0,		0.0,	0.0,		0.0,		0.0 };
+	public double recyclableQtd[] = {		0.0, 		0.0,		0.0,		0.0,		0.0,		0.0,	0.0,		0.0,		0.0 };
+	public double recyclableAmount[] = {		0.0, 		0.0,		0.0,		0.0,		0.0,		0.0,	0.0,		0.0,		0.0 };
 
 
 	
@@ -38,7 +39,7 @@ public class RCM implements Serializable {
 		public Double totalAmount;
 		Transaction(){
 			this.setTransactionDate(new Date());
-			this.setFlagCoupon(UserUI.coupon);
+			this.setFlagCoupon(coupons);
 		}
 		public Double getTotalAmount() {
 			Double totalAmount = 0.0;
@@ -91,14 +92,11 @@ public class RCM implements Serializable {
 	}	
 	
 	public void dropRecyclableItem(Item recyclableItem){
-		 if(validateItem(recyclableItem)) {
 			 this.currentTransaction.transactionItems.add(recyclableItem);
 			 this.currentTransaction.totalWeight+=recyclableItem.weight;
 			 //decrement current capacity
 			 this.presentCapacity -= recyclableItem.weight;
-			 System.out.print("= Dropping "+recyclableItem.weight+" of "+ recyclableItem.itemType +" in RCM "+this.location+"\n");
-		 }
-		 
+			 System.out.print("= Dropping "+recyclableItem.weight+" of "+ recyclableItem.itemType +" in RCM "+this.location+"\n");		 
 	 }
 	
 	public void dropRandomRecyclableItem(){
@@ -116,7 +114,7 @@ public class RCM implements Serializable {
 	 
 	 public Boolean validateItem(Item recyclableItem){
 		 //Test Machine Status
-		 if(Status != "Enabled"){
+		 if(!this.Status.equals("Enabled")){
 //    	   JOptionPane.showInternalMessageDialog(null, " = Error: Can't drop item because the RCM is not enabled.\n", "Alert", JOptionPane.ERROR_MESSAGE); 
 			 System.out.printf("= Error: Can't drop item because the RCM is not enabled.\n");
 			 return false;
