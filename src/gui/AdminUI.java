@@ -12,6 +12,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 
 import javax.swing.JFrame;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -24,6 +25,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 
+import Test.EcoReSystem;
 import ecorecycle.RCM;
 import ecorecycle.RMOS;
 
@@ -38,6 +40,9 @@ import java.util.logging.Logger;
 
 
 @SuppressWarnings("serial")
+/**
+ * Admininistrative User interface class
+ */
 public class AdminUI extends JPanel implements  ActionListener, 
 												TableModelListener, 
 												WindowListener{
@@ -46,19 +51,28 @@ public class AdminUI extends JPanel implements  ActionListener,
 	JButton newMachine, removeMachine, changeItem, addItem,activateRCM,loadMachine, EmptyMachine,submitBt ;
 	JTextArea transactionItemsTextArea;
 	JTextField loginTF, passwdTF;
-	JComboBox graphReportCB, RCMCB;
+	JComboBox graphReportCB;
+	static JComboBox RCMCB;
 	static JComboBox dayCB;
 	JLabel totalAmount,machinesLabel, statsLabel, itemTypes, loginL, passwdL, loginStatusL;
     JLabel [] separator = new JLabel[16];
-    final static JFXPanel weight = new JFXPanel();
-    final static JFXPanel money = new JFXPanel();
-    final static JFXPanel items = new JFXPanel();
-    final static JFXPanel transaction = new JFXPanel();
+    final static JFXPanel weightFX = new JFXPanel();
+    final static JFXPanel moneyFX = new JFXPanel();
+    final static JFXPanel itemsFX = new JFXPanel();
+    final static JFXPanel transactionFX = new JFXPanel();
+    static JTextArea weightTA;
+	JTextArea moneyTA;
+	JTextArea itemsTA;
+	JTextArea transactionsTA;
+    static JScrollPane weightSP;
+	static JScrollPane moneySP;
+	static JScrollPane itemsSP;
+	static JScrollPane transactionsSP;
     static DefaultTableModel defTableModel;
     static int numberOfDays=0, selectedTab=0;
 	private JTable table;
-	Container topMenuContainer, loginContainer, statsContainer;
-	JTabbedPane tabbedPane;
+	Container topMenuContainer, loginContainer, statsContainer1,statsContainer2,statsContainer3,statsContainer4;
+	static JTabbedPane tabbedPane;
 	
     String[] columnNames = {"ID",
             "Location",
@@ -80,14 +94,17 @@ public class AdminUI extends JPanel implements  ActionListener,
 
 	//Model variables
 	public static RMOS station = new RMOS();
-	private int selectedRcm;
+	private static int selectedRcm;
 	private  String [] usr= {"Guilherme", "Ankit"};
 	private String passwd = "admin";
     private static final Logger fLogger = Logger.getLogger(EcoReSystem.class.getPackage().getName());
 
 	
 	
-	//Class constructor
+	/**
+	 * Administrative UI constructor
+	 * @param stationRecovered
+	 */
 	public AdminUI (RMOS stationRecovered) {
 		//Basic Layout Definitions
 		super(new FlowLayout());
@@ -96,6 +113,10 @@ public class AdminUI extends JPanel implements  ActionListener,
 		loadLoginScreen();
 		
 	}
+	/**
+	 * Authenticate user function
+	 * @return true or false
+	 */
 	private boolean authenticate() {
 		if ((loginTF.getText().contentEquals(usr[1]) ||
 				loginTF.getText().contentEquals(usr[0]) ) 
@@ -108,6 +129,10 @@ public class AdminUI extends JPanel implements  ActionListener,
 			return false;
 		}
 	}
+	/**
+	 * Loading the main RMOS UI after login
+	 * 
+	 */
 	private void loadAdminPanel() {
 	loadTable();
 
@@ -146,7 +171,7 @@ public class AdminUI extends JPanel implements  ActionListener,
 	separator[11].setText("|");
 	separator[13].setText("|");
 	separator[12].setText("|");
-	separator[14].setText("|             ");
+	separator[14].setText("|           ");
 	
 	lowLabels.add(itemTypes);
 	lowLabels.add(separator[13]);	
@@ -166,39 +191,128 @@ public class AdminUI extends JPanel implements  ActionListener,
 	centerContainer.add(new Box.Filler(new Dimension(20,20),new Dimension(20,20),new Dimension(20,20)));
 	Container tableContainer = new Container();
 	
-	Container statsContainer = new Container();
-	statsContainer .setLayout(new GridLayout(2,2));
 	
-    tabbedPane = new JTabbedPane();
-    tabbedPane.addTab("Weight", null, weight, "Presents the general statistics");
-    tabbedPane.addTab("Money", null, money, "Presents the statistics about a specific RCM");
-    tabbedPane.addTab("Items", null, items, "Presents the statistics about money");
-    tabbedPane.addTab("Transactions", null, transaction, "Presents the statistics about money");
-    tabbedPane.addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent e) {
-            selectedTab = tabbedPane.getSelectedIndex();
-            refreshGraphic();
-        }
-    });
 	tableContainer.add(topMenuContainer);
 	tableContainer.setLayout(new BoxLayout(tableContainer, BoxLayout.PAGE_AXIS));
 	tableContainer.add(table.getTableHeader(), BorderLayout.PAGE_START);
 	tableContainer.add(tableScrollPane , BorderLayout.CENTER);
 	centerContainer.add(tableContainer);
+
+	weightTA = new JTextArea("weight");
+    weightSP = new JScrollPane(weightTA);
+    weightSP.setBorder(null);
+	weightTA.setFont(new Font("Letter Gothic Std", Font.BOLD, 14));
+	weightTA.setBackground(new Color(246,246,246));
+	weightTA.setSize(750,150);
+    weightSP.setPreferredSize(weightTA.getSize());
+	weightTA.setEditable(false);
+	weightSP.setVisible(false);
+
+	weightFX.setName("Weight");
+	statsContainer1 = new Container();
+	statsContainer1 .setLayout(new FlowLayout());
+	statsContainer1.add(weightFX);
+	statsContainer1.add(weightSP);
+
+	moneyTA = new JTextArea("money");
+    moneySP = new JScrollPane(moneyTA);
+    moneySP.setBorder(null);
+	moneyTA.setFont(new Font("Letter Gothic Std", Font.BOLD, 14));
+	moneyTA.setBackground(new Color(246,246,246));
+	moneyTA.setSize(750,150);
+    moneySP.setPreferredSize(moneyTA.getSize());
+	moneyTA.setEditable(false);
+	moneySP.setVisible(false);
+	
+	moneyFX.setName("Money");
+	statsContainer2 = new Container();
+	statsContainer2 .setLayout(new FlowLayout());
+	statsContainer2.add(moneyFX);
+	statsContainer2.add(moneySP);
+
+	itemsTA = new JTextArea("item");
+    itemsSP = new JScrollPane(itemsTA);
+    itemsSP.setBorder(null);
+	itemsTA.setFont(new Font("Letter Gothic Std", Font.BOLD, 14));
+	itemsTA.setBackground(new Color(246,246,246));
+	itemsTA.setSize(750,150);
+    itemsSP.setPreferredSize(itemsTA.getSize());
+	itemsTA.setEditable(false);
+	itemsSP.setVisible(false);
+	
+	itemsFX.setName("Item");
+	statsContainer3 = new Container();
+	statsContainer3 .setLayout(new FlowLayout());
+	statsContainer3.add(itemsFX);
+	statsContainer3.add(itemsSP);
+
+	transactionsTA = new JTextArea("transaction");
+    transactionsSP = new JScrollPane(transactionsTA);
+    transactionsSP.setBorder(null);
+	transactionsTA.setFont(new Font("Letter Gothic Std", Font.BOLD, 14));
+	transactionsTA.setBackground(new Color(246,246,246));
+	transactionsTA.setSize(750,150);
+    transactionsSP.setPreferredSize(transactionsTA.getSize());
+	transactionsTA.setEditable(false);
+	transactionsSP.setVisible(false);
+	
+	transactionFX.setName("Transaction");
+	statsContainer4 = new Container();
+	statsContainer4 .setLayout(new FlowLayout());
+	statsContainer4.add(transactionFX);
+	statsContainer4.add(transactionsSP);
+
+
+    tabbedPane = new JTabbedPane();
+    tabbedPane.addTab("Weight", null, statsContainer1, "Presents statistics related to weight");
+    tabbedPane.addTab("Money", null, statsContainer2, "Presents the statistics about money");
+    tabbedPane.addTab("Items", null, statsContainer3, "Presents the statistics about the item types");
+    tabbedPane.addTab("Transactions", null, statsContainer4, "Presents the statistics about the transactions in each machine");
+    tabbedPane.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent e) {
+            selectedTab = tabbedPane.getSelectedIndex();
+            refreshInfo();
+        }
+    });
+	
+	Platform.runLater(new Runnable() {
+        @Override
+        public void run() {
+            initFX(weightFX);
+        }
+	});
+	Platform.runLater(new Runnable() {
+        @Override
+        public void run() {
+    		initFX(moneyFX);
+        }
+	});
+	
+	Platform.runLater(new Runnable() {
+        @Override
+        public void run() {
+            initFX(itemsFX);
+        }
+	});
+	Platform.runLater(new Runnable() {
+        @Override
+        public void run() {
+    		initFX(transactionFX);
+        }
+	});
 	
 	add(header);
 	add(topLabels);
 	add(centerContainer);		
 	add(lowLabels);
 	add(tabbedPane);
-    
-		Platform.runLater(new Runnable() {
-		    @Override
-		    public void run() {
-		        initFX(weight);
-		    	}
-		});
+	
+	refreshInfo();
+	
 	}
+	/**
+	 * Load Login screen
+	 */
 	private void loadLoginScreen(){
 		
 		JLabel logo = loadImage(IMG_PATHS[7]);
@@ -243,6 +357,9 @@ public class AdminUI extends JPanel implements  ActionListener,
 		loginContainer.add(loginStatusL);
 		add(loginContainer);
 	}
+	/**
+	 * Loading the menu bar
+	 */
 		private void loadMenuBar() {
 		    //Creating the menu bar
 		    newMachine = new JButton("New Machine");
@@ -308,6 +425,9 @@ public class AdminUI extends JPanel implements  ActionListener,
 			topMenuContainer.add(EmptyMachine);
 	}
 
+		/**
+		 * Lodaing table function
+		 */
 		private void loadTable() {
 			//JTable initialization
 			Object[] newData = {0,"","","","","",""};
@@ -316,7 +436,10 @@ public class AdminUI extends JPanel implements  ActionListener,
 		    // Preventing the user input
 		    defTableModel = new DefaultTableModel(data,columnNames) {
 		    	  public boolean isCellEditable(int row, int column) {
-		    	    	   return false;
+		    		  if(column >0&& column<4)
+		    			  return true;
+		    		  else
+		    			  return false;
 		    	    }
 		    };
 		    
@@ -353,21 +476,9 @@ public class AdminUI extends JPanel implements  ActionListener,
 		    }		
 		    table.setDefaultRenderer(Object.class, new NumberCellRenderer());
 	}
-
-		private void loadStatsReports() {
-
-			add(statsContainer );
-			
-		}
-
-		private void loadStatsGraphs() {
-
-			add(statsContainer );
-			
-		}
-
-		
-		@SuppressWarnings("static-access")
+		/**
+		 * Action listener for the button clicks
+		 */
 		public void actionPerformed(ActionEvent e) {
 		       if(e.getSource() == newMachine) {
 		    	   JTextField machineId,Location,capacity,Money;
@@ -461,7 +572,7 @@ public class AdminUI extends JPanel implements  ActionListener,
 						 else if(e.getSource() == loadMachine) {
 							 UserUI costumerUI = new UserUI(station.getMachine(selectedRcm));
 							 costumerUI.load();
-							 refreshGraphic();
+							 refreshInfo();
 						 }
 						 else if(e.getSource() == EmptyMachine){
 							 station.getMachine(selectedRcm).setLastEmptied(new Date());
@@ -477,47 +588,56 @@ public class AdminUI extends JPanel implements  ActionListener,
 							 }
 						 }
 						 else if(e.getSource() == RCMCB){
-							 System.out.print(RCMCB.getSelectedIndex());
-							 refreshGraphic();
+							 refreshInfo();
 						 }
 						 else if(e.getSource() == dayCB){
-							 System.out.print(dayCB.getSelectedIndex());
-							 refreshGraphic();
+							 if(dayCB.getSelectedIndex()==4) {
+								 JPanel myPanel12 = new JPanel(new GridLayout(2,1));
+								 JTextField nDays = new JTextField("");
+								 JLabel enterDays = new JLabel("Enter the Days");
+								 myPanel12.add(enterDays);
+								 myPanel12.add(nDays);
+								 int result1 = JOptionPane.showConfirmDialog(null, myPanel12, 
+							               "Enter Number Of Days", JOptionPane.OK_CANCEL_OPTION);
+								 
+								 if (result1 == JOptionPane.OK_OPTION) {
+									 numberOfDays = Integer.valueOf(nDays.getText());
+								 }
+								 refreshInfo();
+							 } else
+								 refreshInfo();
 						 }
 						 else if(e.getSource() == graphReportCB){
-							 System.out.print(graphReportCB.getSelectedIndex());
-							 refreshGraphic();
+							 refreshInfo();
 						 }
 		       }
    
 		
+		/**
+		 * Hiding login panel method
+		 */
 		private void hideLoginPanel() {
 			loginContainer.setVisible(false);
 			
 		}
-		public void createAndShowGUI() {
-
-        //Create and set up the window.
-        frame = new JFrame("RMOS");
-        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-
-        //Add content to the window.
-        frame.add(new AdminUI(station));
-
-        //Display the window.
-        frame.setBounds(200, 200, 800, 600);
-        frame.setVisible(true);
-        frame.addWindowListener(this);
-        
-    }
-    static void initFX(JFXPanel fxPanel) {
+		/**
+		 * Creates a JavaFX scene and adds a Bar Graphic to it
+		 * @param fxPanel
+		 */
+	static void initFX(JFXPanel fxPanel) {
         // This method is invoked on the JavaFX thread
-        Scene scene = createBarGraph();
+		
+        Scene scene = createBarGraphic(fxPanel.getName());
         fxPanel.setScene(scene);
     }
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-	private static Scene createBarGraph() {
 
+	/**
+	 * Creates the JavaFX Bar Graphic
+	 * @param name
+	 * @return JavaFX scene
+	 */
+	private static Scene createBarGraphic(String name) {
+		System.out.print(name);
     	final NumberAxis yAxis = new NumberAxis();
                 
         final CategoryAxis xAxis = new CategoryAxis();
@@ -526,8 +646,9 @@ public class AdminUI extends JPanel implements  ActionListener,
             new BarChart<String,Number>(xAxis,yAxis);
         
         XYChart.Series series = new XYChart.Series();
+        
 	        for(int i=0; i<station.getMachines().size();i++) {
-	        	if (selectedTab==0) {// weight is selected
+	        	if (name.equals("Weight")) {// weight is selected
 	        		if(dayCB.getSelectedIndex()==0) {// All Time
 	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(365*10)));	        			
 	        		}
@@ -543,23 +664,29 @@ public class AdminUI extends JPanel implements  ActionListener,
 	        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
 	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(numberOfDays)));
 	        		}
-	        	} else if (selectedTab==1) {// money is selected
+	        	} else if (name.equals("Money")) {// money is selected
+//	                XYChart.Series seriesc = new XYChart.Series();
 	        		if(dayCB.getSelectedIndex()==0) {// All Time
 	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(365*10)));	        			
+//	        			seriesc.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCoupons(365*10)));	        			
 	        		}
 	        		else if(dayCB.getSelectedIndex()==1) {// Day
 		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(1)));
+//		        			seriesc.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCoupons(1)));	        			
         			}
 	        		else if(dayCB.getSelectedIndex()==2) {// Week
 		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(7)));
+//		        			seriesc.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCoupons(7)));	        			
 	        		}
 	        		else if(dayCB.getSelectedIndex()==3) {// Month
 	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(30)));
+//	        			seriesc.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCoupons(30)));	        			
 	        		}
 	        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
 	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(numberOfDays)));
+//	        			seriesc.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCoupons(numberOfDays)));	        			
 	        		}
-	        	} else if (selectedTab==2) {//Items is selected
+	        	} else if (name.equals("Item")) {//Items is selected
 	        		if(dayCB.getSelectedIndex()==0) {// All Time
 	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(365*10)));	        			
 	        		}
@@ -575,7 +702,7 @@ public class AdminUI extends JPanel implements  ActionListener,
 	        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
 	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(numberOfDays)));
 	        		}
-	        	} else if (selectedTab==3) {// Transactions is selected
+	        	} else if (name.equals("Transaction")) {// Transactions is selected
 	        		if(dayCB.getSelectedIndex()==0) {// All Time
 	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(365*10)));	        			
 	        		}
@@ -598,6 +725,292 @@ public class AdminUI extends JPanel implements  ActionListener,
         scene.getStylesheets().add("chart.css");
         return (scene);
     }
+
+	/**
+	 * Updates the weight Bar Graphic according to the comboboxes selections
+	 * @param fxPanel
+	 */
+	private static void updateWeightBG(JFXPanel fxPanel) {
+        Scene scene = fxPanel.getScene();
+    	NumberAxis yAxis1 = new NumberAxis();
+        CategoryAxis xAxis1 = new CategoryAxis();
+        BarChart<String,Number> bc1 = new BarChart(xAxis1, yAxis1);		
+        XYChart.Series series1 = new XYChart.Series();
+        
+        for(int i=0; i<station.getMachines().size();i++) {
+        	if (selectedTab==0) {// weight is selected
+				if (RCMCB.getSelectedIndex()==0){// All Machines Stats
+	
+		        		if(dayCB.getSelectedIndex()==0) {// All Time
+		        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(365*10)));	        			
+		        		}
+		        		else if(dayCB.getSelectedIndex()==1) {// Day
+			        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(1)));
+	        			}
+		        		else if(dayCB.getSelectedIndex()==2) {// Week
+			        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(7)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==3) {// Month
+		        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(30)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+		        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(numberOfDays)));
+		        		}
+	
+				}
+	        	else {// Selected machine
+		        		if(dayCB.getSelectedIndex()==0) {// All Time
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+		        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+		        							station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, 365*10)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==1) {// Day
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+	        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+        							station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, 1)));
+	        			}
+		        		else if(dayCB.getSelectedIndex()==2) {// Week
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+	        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+        							station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, 7)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==3) {// Month
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+	        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+        							station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, 30)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+	        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+        							station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, numberOfDays)));
+		        		}
+        		}
+    		}
+    	}
+        bc1.getData().addAll(series1);
+        scene.setRoot(bc1);
+    }
+	/**
+	 *  Updates the money Bar Graphic according to the comboboxes selections
+	 * @param moneyfx
+	 */
+	private static void updateMoneyBG(JFXPanel moneyfx) {
+		   	Scene scene = moneyfx.getScene();
+	    	NumberAxis yAxis1 = new NumberAxis();
+	        CategoryAxis xAxis1 = new CategoryAxis();
+	        BarChart<String,Number> bc1 = new BarChart(xAxis1, yAxis1);		
+	        XYChart.Series series1 = new XYChart.Series();
+	        
+	        for(int i=0; i<station.getMachines().size();i++) {
+					if (RCMCB.getSelectedIndex()==0){// All Machines Stats
+		
+			        		if(dayCB.getSelectedIndex()==0) {// All Time
+			        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(365*10)+station.getMachine(i).getTotalValueOfCoupons(365*10)));
+			        		}
+			        		else if(dayCB.getSelectedIndex()==1) {// Day
+				        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(1)+station.getMachine(i).getTotalValueOfCoupons(1)));
+		        			}
+			        		else if(dayCB.getSelectedIndex()==2) {// Week
+				        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(7)+station.getMachine(i).getTotalValueOfCoupons(7)));
+			        		}
+			        		else if(dayCB.getSelectedIndex()==3) {// Month
+			        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(30)+station.getMachine(i).getTotalValueOfCoupons(30)));
+			        		}
+			        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+			        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(numberOfDays)+station.getMachine(i).getTotalValueOfCoupons(numberOfDays)));
+			        		}
+		
+					}
+		        	else {// Selected machine
+			        		if(dayCB.getSelectedIndex()==0) {// All Time
+			        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+			        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+			        							station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, 365*10)));
+			        		}
+			        		else if(dayCB.getSelectedIndex()==1) {// Day
+			        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+		        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+	        							station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, 1)));
+		        			}
+			        		else if(dayCB.getSelectedIndex()==2) {// Week
+			        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+		        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+	        							station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, 7)));
+			        		}
+			        		else if(dayCB.getSelectedIndex()==3) {// Month
+			        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+		        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+	        							station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, 30)));
+			        		}
+			        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+			        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+		        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+	        							station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, numberOfDays)));
+			        		}
+	        		}
+	    		}
+	        bc1.getData().addAll(series1);
+	        scene.setRoot(bc1);
+	}
+	/**
+	 *  Updates the items Bar Graphic according to the comboboxes selections
+	 * @param itemsfx
+	 */
+	private static void updateItemsBG(JFXPanel itemsfx) {
+   		Scene scene = itemsfx.getScene();
+    	NumberAxis yAxis1 = new NumberAxis();
+        CategoryAxis xAxis1 = new CategoryAxis();
+        BarChart<String,Number> bc1 = new BarChart(xAxis1, yAxis1);		
+        XYChart.Series series1 = new XYChart.Series();
+        
+        for(int i=0; i<station.getMachines().size();i++) {
+				if (RCMCB.getSelectedIndex()==0){// All Machines Stats
+	
+		        		if(dayCB.getSelectedIndex()==0) {// All Time
+		        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(365*10)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==1) {// Day
+			        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(1)));
+	        			}
+		        		else if(dayCB.getSelectedIndex()==2) {// Week
+			        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(7)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==3) {// Month
+		        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(30)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+		        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(numberOfDays)));
+		        		}
+	
+				}
+	        	else {// Selected machine
+		        		if(dayCB.getSelectedIndex()==0) {// All Time
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+		        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+		        							station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, 365*10)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==1) {// Day
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+	        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+        							station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, 1)));
+	        			}
+		        		else if(dayCB.getSelectedIndex()==2) {// Week
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+	        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+        							station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, 7)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==3) {// Month
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+	        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+        							station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, 30)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+	        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+        							station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, numberOfDays)));
+		        		}
+        		}
+    		}
+        bc1.getData().addAll(series1);
+        scene.setRoot(bc1);
+	}
+
+	/**
+	 *  Updates the transaction Bar Graphic according to the comboboxes selections
+	 * @param transactionfx
+	 */
+	private static void updateTransactionBG(JFXPanel transactionfx) {
+   		Scene scene = transactionfx.getScene();
+    	NumberAxis yAxis1 = new NumberAxis();
+        CategoryAxis xAxis1 = new CategoryAxis();
+        BarChart<String,Number> bc1 = new BarChart(xAxis1, yAxis1);		
+        XYChart.Series series1 = new XYChart.Series();
+        
+        for(int i=0; i<station.getMachines().size();i++) {
+				if (RCMCB.getSelectedIndex()==0){// All Machines Stats
+	
+		        		if(dayCB.getSelectedIndex()==0) {// All Time
+		        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(365*10)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==1) {// Day
+			        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(1)));
+	        			}
+		        		else if(dayCB.getSelectedIndex()==2) {// Week
+			        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(7)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==3) {// Month
+		        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(30)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+		        			series1.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(numberOfDays)));
+		        		}
+	
+				}
+	        	else {// Selected machine
+		        		if(dayCB.getSelectedIndex()==0) {// All Time
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+		        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+		        							station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, 365*10)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==1) {// Day
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+	        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+        							station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, 1)));
+	        			}
+		        		else if(dayCB.getSelectedIndex()==2) {// Week
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+	        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+        							station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, 7)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==3) {// Month
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+	        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+        							station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, 30)));
+		        		}
+		        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+		        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++)  
+	        					series1.getData().add(new XYChart.Data(station.getAvailableItemTypes()[i1].itemType,
+        							station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, numberOfDays)));
+		        		}
+        		}
+    		}
+        bc1.getData().addAll(series1);
+        scene.setRoot(bc1);		
+	}
+
+		/**
+		 * Updates the model after each change in the table
+		 */
+		public void tableChanged(TableModelEvent e) {
+		int row = e.getFirstRow();
+	    int column = e.getColumn();
+	    if(e.getType()==e.UPDATE){
+	        String columnName = table.getColumnName(column);
+	        Object data = table.getValueAt(row, column);
+	        if (columnName =="Location") {
+	        	station.getMachine(selectedRcm).location = (String) data;
+	        	System.out.print("= Location changed to "+(String) data);
+	        }
+	        if (columnName == "Capacity") {
+	        	station.getMachine(selectedRcm).capacity = Double.parseDouble((String) data);
+	        	station.getMachine(selectedRcm).presentCapacity = Double.parseDouble((String) data);
+	        	System.out.print("\n= Capacity changed to "+(String) data);
+	        }
+	        if (columnName == "$ Available") {
+	        	station.getMachine(selectedRcm).money = Double.parseDouble((String) data);
+	        	System.out.print("\n= $ available changed to "+(String) data);
+	        }
+	        
+	    } else if (e.getType()==e.DELETE) {
+	    	
+	    }
+	
+	}
+		/**
+		 * Utility method to load image buttons
+		 * @param path
+		 * @return button
+		 */
 		public JButton loadImageBtn(String path) {
         try {
            String pressedPath = "./img/buttons/click/"+ path.substring(14,path.length());
@@ -618,6 +1031,11 @@ public class AdminUI extends JPanel implements  ActionListener,
            return null;
    		}
      }
+		/**
+		 * Utility method to load images
+		 * @param path
+		 * @return imaglabel
+		 */
 		public JLabel loadImage(String path) {
         try {
            BufferedImage img = ImageIO.read(new File(path));
@@ -629,6 +1047,9 @@ public class AdminUI extends JPanel implements  ActionListener,
            return null;
    		}
      }
+		/**
+		 * Method that updates the table
+		 */
 		public static void refreshTable(){
 			//defTableModel.removeRow(selectedRcm);
 		    for (int i =0; i< station.getMachines().size(); i++) {
@@ -641,61 +1062,488 @@ public class AdminUI extends JPanel implements  ActionListener,
 		    			station.getMachine(i).money,
 		    			station.getMachine(i).Status,
 		    			station.getMachine(i).listOfItems.size(),
-		    			station.getMachine(i).lastEmptied};
+		    			station.getMachine(i).lastEmptied.get(station.getMachine(i).lastEmptied.size()-1)};
 	    			defTableModel.addRow(newData1);	    	
 		    }
 		}
-
-		public void tableChanged(TableModelEvent e) {
-			int row = e.getFirstRow();
-	        int column = e.getColumn();
-	        if(e.getType()==e.UPDATE){
-		        String columnName = table.getColumnName(column);
-		        Object data = table.getValueAt(row, column);
-		        if (columnName =="Location") {
-		        	station.getMachine(selectedRcm).location = (String) data;
-		        	System.out.print("= Location changed to "+(String) data);
-		        }
-		        if (columnName == "Capacity") {
-		        	station.getMachine(selectedRcm).capacity = Double.parseDouble((String) data);
-		        	System.out.print("= Capacity changed to "+(String) data);
-		        }
-		        
-	        } else if (e.getType()==e.DELETE) {
-	        	
-	        }
-		
+		/**
+		 * Method that updates the graphic or the textual report 
+		 */
+		public void refreshInfo(){
+			 if (graphReportCB.getSelectedIndex()==0) {
+				 	refreshGraphic();
+			 }
+			 else {
+				 	refreshStatistics();
+			 }
 		}
+		/**
+		 * Method that updates the bar graphics according to the selected tab
+		 */
 		public static void refreshGraphic(){
 			System.out.print("= Refreshing graphic\n");
-			Platform.runLater(new Runnable() {
-	            @Override
-	            public void run() {
-	            	if(selectedTab==0)
-	            		initFX(weight);
-	            	else if(selectedTab==1)
-	            		initFX(money);
-	            	else if(selectedTab==2)
-	            		initFX(items);
-	            	else if(selectedTab==3)
-	            		initFX(transaction);
 
-	            }
-	       });
+    		ActionListener task = new ActionListener() {
+	            public void actionPerformed(ActionEvent e) {
+		        	if(selectedTab==0) {
+		        		AdminUI.weightSP.setVisible(false);
+		        		AdminUI.weightFX.setVisible(true);
+		    			Platform.runLater(new Runnable() {
+		    				public void run() {
+		    					updateWeightBG(weightFX);
+		    				}
+	    		        });
+		        	} else if(selectedTab==1) {
+		        		AdminUI.moneySP.setVisible(false);
+		        		AdminUI.moneyFX.setVisible(true);
+		    			Platform.runLater(new Runnable() {
+		    				public void run() {
+		    					updateMoneyBG(moneyFX);
+		    				}
+	    		        });
+		        	} else if(selectedTab==2) {
+		        		AdminUI.itemsSP.setVisible(false);
+		        		AdminUI.itemsFX.setVisible(true);
+		    			Platform.runLater(new Runnable() {
+		    				public void run() {
+		    					updateItemsBG(itemsFX);
+		    				}
+	    		        });
+		        	} else if(selectedTab==3) {
+		        		AdminUI.transactionsSP.setVisible(false);
+		        		AdminUI.transactionFX.setVisible(true);
+		    			Platform.runLater(new Runnable() {
+		    				public void run() {
+		    					updateTransactionBG(transactionFX);
+		    				}
+	    		        });
+		        	}
+    			}
+	        };
+	        Timer timer = new Timer(2000, task); //fire every half second
+	        timer.setRepeats(false);
+	        timer.start();
+
 		}
-		public static void refreshStatistics () {
-//       		System.out.print(station.getMachine(0).getNumberOfTransaction(7)+""+
-//       		station.getMachine(0).getTotalValueOfMachinePerDay()+
-//       		station.getMachine(0).getTotalValueOfMachinePerWeek()+
-//       		station.getMaxTransactionMachine(7)+
-//       		station.returnMostUsedMachine().location);
-//
+		/**
+		 * Method that updates the textual reports
+		 */
+		public void refreshStatistics () {
+			System.out.print("= Refreshing stats\n");
+        	if(selectedTab==0) {
+        		AdminUI.weightSP.setVisible(true);
+        		AdminUI.weightFX.setVisible(false);
+        		refreshWeightStats();
+        	}else if(selectedTab==1) {
+           		AdminUI.moneySP.setVisible(true);
+        		AdminUI.moneyFX.setVisible(false);
+        		refreshMoneyStats();
+ 			}else if(selectedTab==2) {
+ 	       		AdminUI.itemsSP.setVisible(true);
+        		AdminUI.itemsFX.setVisible(false);
+        		refreshItemsStats();
+ 			}else if(selectedTab==3) {
+ 	       		AdminUI.transactionsSP.setVisible(true);
+        		AdminUI.transactionFX.setVisible(false);
+        		refreshTransactionsStats();
+ 			}
 		}
+		/**
+		 * Refresh the data for the weight tab textual report
+		 */
+		private void refreshWeightStats() {
+			if (RCMCB.getSelectedIndex()==0){//All RCMs
+			weightTA.setText("--------------------------------------------\n"
+					+ "All RCMs Statistics\n"
+					+ "--------------------------------------------\n");
+    		if(dayCB.getSelectedIndex()==0) {// All Time
+    			weightTA.setText(weightTA.getText()+"Period: All Time | Most used:" + station.getMaxTransactionMachine(10*365) + "\n"
+    					+ "--------------------------------------------\n");
+    			for(int i1=0; i1<station.getMachines().size();i1++) 
+        			weightTA.setText(weightTA.getText()+String.format("%.2f",station.getMachine(i1).getWeightofMachine(365*10))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+    			weightTA.setText(weightTA.getText()+ "--------------------------------------------\n");
+    			}
+    		else if(dayCB.getSelectedIndex()==1) {// Day
+        			weightTA.setText(weightTA.getText()+"Period: Day | Most used:" + station.getMaxTransactionMachine(1) + "\n"
+        					+ "--------------------------------------------\n");
+        			for(int i1=0; i1<station.getMachines().size();i1++) 
+            			weightTA.setText(weightTA.getText()+String.format("%.2f",station.getMachine(i1).getWeightofMachine(1))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+        			weightTA.setText(weightTA.getText()+ "--------------------------------------------\n");
+			}
+    		else if(dayCB.getSelectedIndex()==2) {// Week
+    			weightTA.setText(weightTA.getText()+"Period: Week | Most used:" + station.getMaxTransactionMachine(7) + "\n"
+    					+ "--------------------------------------------\n");
+    			for(int i1=0; i1<station.getMachines().size();i1++) 
+        			weightTA.setText(weightTA.getText()+String.format("%.2f",station.getMachine(i1).getWeightofMachine(7))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+    			weightTA.setText(weightTA.getText()+ "--------------------------------------------\n");
+    		}
+    		else if(dayCB.getSelectedIndex()==3) {// Month
+    			weightTA.setText(weightTA.getText()+"Period: Month | Most used:" + station.getMaxTransactionMachine(30) + "\n"
+    					+ "--------------------------------------------\n");
+    			for(int i1=0; i1<station.getMachines().size();i1++) 
+        			weightTA.setText(weightTA.getText()+String.format("%.2f",station.getMachine(i1).getWeightofMachine(30))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+    			weightTA.setText(weightTA.getText()+ "--------------------------------------------\n");
+    		}
+    		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+    			weightTA.setText(weightTA.getText()+"Period: "+ numberOfDays+" Days | Most used:" + station.getMaxTransactionMachine(numberOfDays) + "\n"
+    					+ "--------------------------------------------\n");
+    			for(int i1=0; i1<station.getMachines().size();i1++) 
+        			weightTA.setText(weightTA.getText()+String.format("%.2f",station.getMachine(i1).getWeightofMachine(numberOfDays))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+    			weightTA.setText(weightTA.getText()+ "--------------------------------------------\n");
+    		}
+			
+			
+		} else {//Selected RCM
+			weightTA.setText("--------------------------------------------\n"
+					+ station.getMachine(selectedRcm).location+" Statistics\n"
+					+ "--------------------------------------------\n");
+    		if(dayCB.getSelectedIndex()==0) {// All Time
+    			weightTA.setText(weightTA.getText()+"Period: All Time\n"
+    					+ "--------------------------------------------\n");
+    			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++) 
+    				if (station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, 365*10) >0.0)
+    					weightTA.setText(weightTA.getText()+String.format("%.2f",station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, 365*10))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+    			weightTA.setText(weightTA.getText()+ "--------------------------------------------\n");
+    			}
+    		else if(dayCB.getSelectedIndex()==1) {// Day
+        			weightTA.setText(weightTA.getText()+"Period: Day\n"
+        					+ "--------------------------------------------\n");
+        			for(int i1=0; i1<station.getMachines().size();i1++) 
+        				if (station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, 1) >0.0)
+        					weightTA.setText(weightTA.getText()+String.format("%.2f",station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, 1))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+        			weightTA.setText(weightTA.getText()+ "--------------------------------------------\n");
+			}
+    		else if(dayCB.getSelectedIndex()==2) {// Week
+    			weightTA.setText(weightTA.getText()+"Period: Week\n"
+    					+ "--------------------------------------------\n");
+    			for(int i1=0; i1<station.getMachines().size();i1++) 
+    				if (station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, 7) >0.0)
+    					weightTA.setText(weightTA.getText()+String.format("%.2f",station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, 7))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+    				weightTA.setText(weightTA.getText()+ "--------------------------------------------\n");
+    		}
+    		else if(dayCB.getSelectedIndex()==3) {// Month
+    			weightTA.setText(weightTA.getText()+"Period: Month\n"
+    					+ "--------------------------------------------\n");
+    			for(int i1=0; i1<station.getMachines().size();i1++) 
+    				if (station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, 30) >0.0)
+    					weightTA.setText(weightTA.getText()+String.format("%.2f",station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, 30))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+    			weightTA.setText(weightTA.getText()+ "--------------------------------------------\n");
+    		}
+    		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+    			weightTA.setText(weightTA.getText()+"Period: "+ numberOfDays+" Days \n"
+    					+ "--------------------------------------------\n");
+    			for(int i1=0; i1<station.getMachines().size();i1++) 
+    				if (station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, numberOfDays) >0.0)
+    					weightTA.setText(weightTA.getText()+String.format("%.2f",station.getMachine(selectedRcm).getTotalWeightOfItem(station.getAvailableItemTypes()[i1].itemType, numberOfDays))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+    			weightTA.setText(weightTA.getText()+ "--------------------------------------------\n");
+    		}
+			
+		}
+    
+			}
+		/**
+		 * Refresh the data for the money tab textual report
+		 */
+
+		private void refreshMoneyStats() {
+			if (RCMCB.getSelectedIndex()==0){
+				moneyTA.setText("--------------------------------------------\n"
+						+ "All RCMs Statistics\n"
+						+ "--------------------------------------------\n");
+        		if(dayCB.getSelectedIndex()==0) {// All Time
+        			moneyTA.setText(moneyTA.getText()+"Period: All Time (Value in Money + Value in Coupon)\n"
+        					+ "--------------------------------------------\n");
+        			for(int i1=0; i1<station.getMachines().size();i1++) 
+            			moneyTA.setText(moneyTA.getText()+String.format("%.2f + %.2f = %.2f",station.getMachine(i1).getTotalValueOfCash(365*10),station.getMachine(i1).getTotalValueOfCoupons(365*10),station.getMachine(i1).getTotalValueOfCash(365*10)+station.getMachine(i1).getTotalValueOfCoupons(365*10))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+        			moneyTA.setText(moneyTA.getText()+ "--------------------------------------------\n");
+        			}
+        		else if(dayCB.getSelectedIndex()==1) {// Day
+            			moneyTA.setText(moneyTA.getText()+"Period: Day\n"
+            					+ "--------------------------------------------\n");
+            			for(int i1=0; i1<station.getMachines().size();i1++) 
+                			moneyTA.setText(moneyTA.getText()+String.format("%.2f \t+\t %.2f \t=\t %.2f",station.getMachine(i1).getTotalValueOfCash(1),station.getMachine(i1).getTotalValueOfCoupons(1),station.getMachine(i1).getTotalValueOfCash(1)+station.getMachine(i1).getTotalValueOfCoupons(1))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+            			moneyTA.setText(moneyTA.getText()+ "--------------------------------------------\n");
+    			}
+        		else if(dayCB.getSelectedIndex()==2) {// Week
+        			moneyTA.setText(moneyTA.getText()+"Period: Week\n"
+        					+ "--------------------------------------------\n");
+        			for(int i1=0; i1<station.getMachines().size();i1++) 
+            			moneyTA.setText(moneyTA.getText()+String.format("%.2f \t+\t %.2f \t=\t %.2f",station.getMachine(i1).getTotalValueOfCash(7),station.getMachine(i1).getTotalValueOfCoupons(7),station.getMachine(i1).getTotalValueOfCash(7)+station.getMachine(i1).getTotalValueOfCoupons(7))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+        			moneyTA.setText(moneyTA.getText()+ "--------------------------------------------\n");
+        		}
+        		else if(dayCB.getSelectedIndex()==3) {// Month
+        			moneyTA.setText(moneyTA.getText()+"Period: Month\n"
+        					+ "--------------------------------------------\n");
+        			for(int i1=0; i1<station.getMachines().size();i1++) 
+            			moneyTA.setText(moneyTA.getText()+String.format("%.2f \t+\t %.2f \t=\t %.2f",station.getMachine(i1).getTotalValueOfCash(30),station.getMachine(i1).getTotalValueOfCoupons(30),station.getMachine(i1).getTotalValueOfCash(30)+station.getMachine(i1).getTotalValueOfCoupons(30))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+        			moneyTA.setText(moneyTA.getText()+ "--------------------------------------------\n");
+        		}
+        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+        			moneyTA.setText(moneyTA.getText()+"Period: "+ numberOfDays+" Days \n"
+        					+ "--------------------------------------------\n");
+        			for(int i1=0; i1<station.getMachines().size();i1++) 
+            			moneyTA.setText(moneyTA.getText()+String.format("%.2f \t+\t %.2f \t=\t %.2f",station.getMachine(i1).getTotalValueOfCash(numberOfDays),station.getMachine(i1).getTotalValueOfCoupons(numberOfDays),station.getMachine(i1).getTotalValueOfCash(numberOfDays)+station.getMachine(i1).getTotalValueOfCoupons(numberOfDays))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+        			moneyTA.setText(moneyTA.getText()+ "--------------------------------------------\n");
+        		}
+				
+				
+			} else {//Selected RCM
+				moneyTA.setText("--------------------------------------------\n"
+						+ station.getMachine(selectedRcm).location+" Statistics\n"
+						+ "--------------------------------------------\n");
+        		if(dayCB.getSelectedIndex()==0) {// All Time
+        			moneyTA.setText(moneyTA.getText()+"Period: All Time\n"
+        					+ "--------------------------------------------\n");
+        			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++) 
+        				if (station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, 365*10) >0.0)
+        					moneyTA.setText(moneyTA.getText()+String.format("%.2f",station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, 365*10))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+        			moneyTA.setText(moneyTA.getText()+ "--------------------------------------------\n");
+        			}
+        		else if(dayCB.getSelectedIndex()==1) {// Day
+            			moneyTA.setText(moneyTA.getText()+"Period: Day\n"
+            					+ "--------------------------------------------\n");
+            			for(int i1=0; i1<station.getMachines().size();i1++) 
+            				if (station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, 1) >0.0)
+            					moneyTA.setText(moneyTA.getText()+String.format("%.2f",station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, 1))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+            			moneyTA.setText(moneyTA.getText()+ "--------------------------------------------\n");
+    			}
+        		else if(dayCB.getSelectedIndex()==2) {// Week
+        			moneyTA.setText(moneyTA.getText()+"Period: Week\n"
+        					+ "--------------------------------------------\n");
+        			for(int i1=0; i1<station.getMachines().size();i1++) 
+        				if (station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, 7) >0.0)
+        					moneyTA.setText(moneyTA.getText()+String.format("%.2f",station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, 7))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+        				moneyTA.setText(moneyTA.getText()+ "--------------------------------------------\n");
+        		}
+        		else if(dayCB.getSelectedIndex()==3) {// Month
+        			moneyTA.setText(moneyTA.getText()+"Period: Month\n"
+        					+ "--------------------------------------------\n");
+        			for(int i1=0; i1<station.getMachines().size();i1++) 
+        				if (station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, 30) >0.0)
+        					moneyTA.setText(moneyTA.getText()+String.format("%.2f",station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, 30))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+        			moneyTA.setText(moneyTA.getText()+ "--------------------------------------------\n");
+        		}
+        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+        			moneyTA.setText(moneyTA.getText()+"Period: "+ numberOfDays+" Days \n"
+        					+ "--------------------------------------------\n");
+        			for(int i1=0; i1<station.getMachines().size();i1++) 
+        				if (station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, numberOfDays) >0.0)
+        					moneyTA.setText(moneyTA.getText()+String.format("%.2f",station.getMachine(selectedRcm).getTotalMoneyOfItem(station.getAvailableItemTypes()[i1].itemType, numberOfDays))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+        			moneyTA.setText(moneyTA.getText()+ "--------------------------------------------\n");
+        		}
+				
+			}
+        }
+
+		/**
+		 * Refresh the data for the items tab textual report
+		 */
+		private void refreshItemsStats() {
+			if (RCMCB.getSelectedIndex()==0){
+				itemsTA.setText("--------------------------------------------\n"
+						+ "All RCMs Statistics\n"
+						+ "--------------------------------------------\n");
+	    		if(dayCB.getSelectedIndex()==0) {// All Time
+	    			itemsTA.setText(itemsTA.getText()+"Period: All Time\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	        			itemsTA.setText(itemsTA.getText()+String.format("%d",station.getMachine(i1).getNumberOfItems(365*10))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+	    			itemsTA.setText(itemsTA.getText()+ "--------------------------------------------\n");
+	    			}
+	    		else if(dayCB.getSelectedIndex()==1) {// Day
+	        			itemsTA.setText(itemsTA.getText()+"Period: Day\n"
+	        					+ "--------------------------------------------\n");
+	        			for(int i1=0; i1<station.getMachines().size();i1++) 
+	            			itemsTA.setText(itemsTA.getText()+String.format("%d",station.getMachine(i1).getNumberOfItems(1))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+	        			itemsTA.setText(itemsTA.getText()+ "--------------------------------------------\n");
+				}
+	    		else if(dayCB.getSelectedIndex()==2) {// Week
+	    			itemsTA.setText(itemsTA.getText()+"Period: Week\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	        			itemsTA.setText(itemsTA.getText()+String.format("%d",station.getMachine(i1).getNumberOfItems(7))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+	    			itemsTA.setText(itemsTA.getText()+ "--------------------------------------------\n");
+	    		}
+	    		else if(dayCB.getSelectedIndex()==3) {// Month
+	    			itemsTA.setText(itemsTA.getText()+"Period: Month\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	        			itemsTA.setText(itemsTA.getText()+String.format("%d",station.getMachine(i1).getNumberOfItems(30))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+	    			itemsTA.setText(itemsTA.getText()+ "--------------------------------------------\n");
+	    		}
+	    		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+	    			itemsTA.setText(itemsTA.getText()+"Period: "+ numberOfDays+" Days \n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	        			itemsTA.setText(itemsTA.getText()+String.format("%d",station.getMachine(i1).getNumberOfItems(numberOfDays))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+	    			itemsTA.setText(itemsTA.getText()+ "--------------------------------------------\n");
+	    		}
+				
+				
+			} else {//Selected RCM
+				itemsTA.setText("--------------------------------------------\n"
+						+ station.getMachine(selectedRcm).location+" Statistics\n"
+						+ "--------------------------------------------\n");
+	    		if(dayCB.getSelectedIndex()==0) {// All Time
+	    			itemsTA.setText(itemsTA.getText()+"Period: All Time\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++) 
+	    				if (station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, 365*10) >0.0)
+	    					itemsTA.setText(itemsTA.getText()+String.format("%d",station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, 365*10))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+	    			itemsTA.setText(itemsTA.getText()+ "--------------------------------------------\n");
+	    			}
+	    		else if(dayCB.getSelectedIndex()==1) {// Day
+	        			itemsTA.setText(itemsTA.getText()+"Period: Day\n"
+	        					+ "--------------------------------------------\n");
+	        			for(int i1=0; i1<station.getMachines().size();i1++) 
+	        				if (station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, 1) >0.0)
+	        					itemsTA.setText(itemsTA.getText()+String.format("%d",station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, 1))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+	        			itemsTA.setText(itemsTA.getText()+ "--------------------------------------------\n");
+				}
+	    		else if(dayCB.getSelectedIndex()==2) {// Week
+	    			itemsTA.setText(itemsTA.getText()+"Period: Week\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	    				if (station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, 7) >0.0)
+	    					itemsTA.setText(itemsTA.getText()+String.format("%d",station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, 7))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+	    				itemsTA.setText(itemsTA.getText()+ "--------------------------------------------\n");
+	    		}
+	    		else if(dayCB.getSelectedIndex()==3) {// Month
+	    			itemsTA.setText(itemsTA.getText()+"Period: Month\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	    				if (station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, 30) >0.0)
+	    					itemsTA.setText(itemsTA.getText()+String.format("%d",station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, 30))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+	    			itemsTA.setText(itemsTA.getText()+ "--------------------------------------------\n");
+	    		}
+	    		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+	    			itemsTA.setText(itemsTA.getText()+"Period: "+ numberOfDays+" Days \n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	    				if (station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, numberOfDays) >0.0)
+	    					itemsTA.setText(itemsTA.getText()+String.format("%d",station.getMachine(selectedRcm).getTotalItemsOfType(station.getAvailableItemTypes()[i1].itemType, numberOfDays))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+	    			itemsTA.setText(itemsTA.getText()+ "--------------------------------------------\n");
+	    		}
+				
+			}			
+		}
+		/**
+		 * Refresh the data for the transactions tab textual report
+		 */
+		private void refreshTransactionsStats() {
+			if (RCMCB.getSelectedIndex()==0){
+				transactionsTA.setText("--------------------------------------------\n"
+						+ "All RCMs Statistics\n"
+						+ "--------------------------------------------\n");
+	    		if(dayCB.getSelectedIndex()==0) {// All Time
+	    			transactionsTA.setText(transactionsTA.getText()+"Period: All Time"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	        			transactionsTA.setText(transactionsTA.getText()+String.format("%d",station.getMachine(i1).getNumberOfTransaction(365*10))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+	    			transactionsTA.setText(transactionsTA.getText()+ "--------------------------------------------\n");
+	    			}
+	    		else if(dayCB.getSelectedIndex()==1) {// Day
+	        			transactionsTA.setText(transactionsTA.getText()+"Period: Day\n"
+	        					+ "--------------------------------------------\n");
+	        			for(int i1=0; i1<station.getMachines().size();i1++) 
+	            			transactionsTA.setText(transactionsTA.getText()+String.format("%d",station.getMachine(i1).getNumberOfTransaction(1))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+	        			transactionsTA.setText(transactionsTA.getText()+ "--------------------------------------------\n");
+				}
+	    		else if(dayCB.getSelectedIndex()==2) {// Week
+	    			transactionsTA.setText(transactionsTA.getText()+"Period: Week\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	        			transactionsTA.setText(transactionsTA.getText()+String.format("%d",station.getMachine(i1).getNumberOfTransaction(7))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+	    			transactionsTA.setText(transactionsTA.getText()+ "--------------------------------------------\n");
+	    		}
+	    		else if(dayCB.getSelectedIndex()==3) {// Month
+	    			transactionsTA.setText(transactionsTA.getText()+"Period: Month\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	        			transactionsTA.setText(transactionsTA.getText()+String.format("%d",station.getMachine(i1).getNumberOfTransaction(30))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+	    			transactionsTA.setText(transactionsTA.getText()+ "--------------------------------------------\n");
+	    		}
+	    		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+	    			transactionsTA.setText(transactionsTA.getText()+"Period: "+ numberOfDays+" Days\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	        			transactionsTA.setText(transactionsTA.getText()+String.format("%d",station.getMachine(i1).getNumberOfTransaction(numberOfDays))+"\t\t\t\t "+station.getMachine(i1).location+"\n");	        			
+	    			transactionsTA.setText(transactionsTA.getText()+ "--------------------------------------------\n");
+	    		}
+				
+				
+			} else {//Selected RCM
+				transactionsTA.setText("--------------------------------------------\n"
+						+ station.getMachine(selectedRcm).location+" Statistics\n"
+						+ "--------------------------------------------\n");
+	    		if(dayCB.getSelectedIndex()==0) {// All Time
+	    			transactionsTA.setText(transactionsTA.getText()+"Period: All Time | # of Times Emptied: "+station.getMachine(selectedRcm).getNumberOfTimesMachineEmptied(365*10)+"\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getAvailableItemTypes().length;i1++) 
+	    				if (station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, 365*10) >0.0)
+	    					transactionsTA.setText(transactionsTA.getText()+String.format("%d",station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, 365*10))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+	    			transactionsTA.setText(transactionsTA.getText()+ "--------------------------------------------\n");
+	    			}
+	    		else if(dayCB.getSelectedIndex()==1) {// Day
+	        			transactionsTA.setText(transactionsTA.getText()+"Period: Day | # of Times Emptied: "+station.getMachine(selectedRcm).getNumberOfTimesMachineEmptied(1)+"\n"
+	        					+ "--------------------------------------------\n");
+	        			for(int i1=0; i1<station.getMachines().size();i1++) 
+	        				if (station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, 1) >0.0)
+	        					transactionsTA.setText(transactionsTA.getText()+String.format("%d",station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, 1))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+	        			transactionsTA.setText(transactionsTA.getText()+ "--------------------------------------------\n");
+				}
+	    		else if(dayCB.getSelectedIndex()==2) {// Week
+	    			transactionsTA.setText(transactionsTA.getText()+"Period: Week | # of Times Emptied: "+station.getMachine(selectedRcm).getNumberOfTimesMachineEmptied(7)+"\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	    				if (station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, 7) >0.0)
+	    					transactionsTA.setText(transactionsTA.getText()+String.format("%d",station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, 7))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+	    				transactionsTA.setText(transactionsTA.getText()+ "--------------------------------------------\n");
+	    		}
+	    		else if(dayCB.getSelectedIndex()==3) {// Month
+	    			transactionsTA.setText(transactionsTA.getText()+"Period: Month| # of Times Emptied: "+station.getMachine(selectedRcm).getNumberOfTimesMachineEmptied(30)+"\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	    				if (station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, 30) >0.0)
+	    					transactionsTA.setText(transactionsTA.getText()+String.format("%d",station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, 30))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+	    			transactionsTA.setText(transactionsTA.getText()+ "--------------------------------------------\n");
+	    		}
+	    		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+	    			transactionsTA.setText(transactionsTA.getText()+"Period: "+ numberOfDays+" Days | # of Times Emptied: "+station.getMachine(selectedRcm).getNumberOfTimesMachineEmptied(numberOfDays)+"\n"
+	    					+ "--------------------------------------------\n");
+	    			for(int i1=0; i1<station.getMachines().size();i1++) 
+	    				if (station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, numberOfDays) >0.0)
+	    					transactionsTA.setText(transactionsTA.getText()+String.format("%d",station.getMachine(selectedRcm).getTotalTransactionsWithType(station.getAvailableItemTypes()[i1].itemType, numberOfDays))+"\t\t\t\t\t"+station.getAvailableItemTypes()[i1].itemType+"\n");
+	    			transactionsTA.setText(transactionsTA.getText()+ "--------------------------------------------\n");
+	    		}
+				
+			}
+		}
+		/**
+		 * Method that create and shows the RMOS GUI 
+		 */
+		public void createAndShowGUI() {
 		
+		    //Create and set up the window.
+		    frame = new JFrame("RMOS");
+		    frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		
+		    //Add content to the window.
+		    frame.add(new AdminUI(station));
+		
+		    //Display the window.
+		    frame.setBounds(200, 200, 800, 600);
+		    frame.setVisible(true);
+		    frame.addWindowListener(this);
+		    
+		}
+		/**
+		 * Method that closes the window and writes the program data into a file
+		 */
 		@Override
 		public void windowClosing(WindowEvent e) {
 			System.out.print("Closing Window.\n");
-		        ActionListener task = new ActionListener() {
+		        ActionListener task1 = new ActionListener() {
 		            boolean alreadyDisposed = false;
 		            public void actionPerformed(ActionEvent e) {
 		                if (frame.isDisplayable()) {
@@ -704,9 +1552,9 @@ public class AdminUI extends JPanel implements  ActionListener,
 		                }
 		            }
 		        };
-		        Timer timer = new Timer(500, task); //fire every half second
-		        timer.setRepeats(false);
-		        timer.start();
+		        Timer timer2 = new Timer(500, task1); //fire every half second
+		        timer2.setRepeats(false);
+		        timer2.start();
 		      //serialize the List
 		        try (
 		          OutputStream file = new FileOutputStream("data.ser");
@@ -720,24 +1568,45 @@ public class AdminUI extends JPanel implements  ActionListener,
 		        }
 		
 		}
+		/**
+		 * Empty Methods required for the windows listener 
+		 */
 		@Override
 		public void windowOpened(WindowEvent e) {}
+		/**
+		 * Empty Methods required for the windows listener 
+		 */
 		@Override
 		public void windowClosed(WindowEvent e) {}
+		/**
+		 * Empty Methods required for the windows listener 
+		 */
 		@Override
 		public void windowIconified(WindowEvent e) {}
+		/**
+		 * Empty Methods required for the windows listener 
+		 */
 		@Override
 		public void windowDeiconified(WindowEvent e) {}
+		/**
+		 * Empty Methods required for the windows listener 
+		 */
 		@Override
 		public void windowActivated(WindowEvent e) {}
+		/**
+		 * Empty Methods required for the windows listener 
+		 */
 		@Override
 		public void windowDeactivated(WindowEvent e) {}	
-
-		
-		//Utility Class to format the table numbers properly
+		/**
+		 * Utility Class to format the table numbers properly
+		 * @author Guilherme and Ankit
+		 */
 		public class NumberCellRenderer extends DefaultTableCellRenderer {
 		    DecimalFormat numberFormat = new DecimalFormat("#,###.##;(#,###.##)");
-
+			/**
+			 * Method that format the table cells
+			 */
 		    @Override
 		    public Component getTableCellRendererComponent(JTable jTable, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 		        Component c = super.getTableCellRendererComponent(jTable, value, isSelected, hasFocus, row, column);

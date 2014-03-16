@@ -2,13 +2,19 @@ package ecorecycle;
 
 import java.io.*;
 import java.util.*;
-
+/**
+ * Monitoring station class
+ * @author guilherme
+ *
+ */
 public class RMOS implements Serializable {	
 	
 	private ArrayList<RCM> allRCMs = new ArrayList<RCM>();
 	
 	private static Item availableItemTypes[]=new Item[9];
-	
+	/**
+	 * RMOS Class constructor
+	 */
 	public RMOS() {
 		availableItemTypes[0] = new Item ("Mixed",0.0051,0);
 		availableItemTypes[1] = new Item ("Cartons",0.05,1);
@@ -20,32 +26,51 @@ public class RMOS implements Serializable {
 		availableItemTypes[7] = new Item ("Paper",0.1,7);
 		availableItemTypes[8] = new Item ("Food Waste",0.009,8);
 	}
-	
-	public static Item getRandomType() {
-		int i = new Random().nextInt(8);
-		return availableItemTypes[i];
-	}
+	/**
+	 * Returns the type ID for a specific recyclable item name
+	 * @param s
+	 * @return typeID
+	 */
 	public int getAvailableTypeId(String s) {
 		for (int i = 0; i < availableItemTypes.length; i++)
 			if (availableItemTypes[i].itemType.equals(s)) return i;
 		return -1;
 	}
-		
+	/**
+	 * Returns the list of RCM Objects
+	 * @return RCMList
+	 */
 	public ArrayList<RCM> getMachines(){
 		return allRCMs;
 	}
+	/**
+	 * Returns a machine given its id
+	 * @param i
+	 * @return RCMID
+	 */
 	public RCM getMachine(int i){
 		return allRCMs.get(i);
 	}
-	
+	/**
+	 * Adds a RCM object to the list
+	 * @param obj
+	 */	
 	public void addRCM(RCM rcmObj){
 		allRCMs.add(rcmObj);		
 	}
-	
+	/**
+	 * Removes a RCM object from the list
+	 * @param obj
+	 */
 	public void removeRCM(RCM obj){
 		allRCMs.remove(obj);
 	}
-		
+/**
+ * Method that returns the operational status
+ * of a specific RCM		
+ * @param obj
+ * @return status
+ */
 	public String checkOperationalStatus(RCM obj){
 		int j;
 		for(j=0;j<allRCMs.size();j++){
@@ -55,29 +80,46 @@ public class RMOS implements Serializable {
 		}
 		return null;
 	}
-		
-	 public void changeRecyclableItems(){
-		 
-	 }
-	
+	/**
+	 * Changes the price of an specific item
+	 * in a RCM
+	 * @param obj
+	 * @param item
+	 * @param price
+	 */
 	public void changePrice(RCM obj,Item item, Double price){
 		int k = obj.listOfItems.indexOf(item);
 		obj.listOfItems.get(k).price = price;
 	}
-	
+	/**
+	 * Returns the available money in a specific RCM
+	 * @param obj
+	 * @return money
+	 */
 	public Double  checkMoney(RCM obj){
 		return obj.money;
 	}
-	
+	/**
+	 * Returns the capacity of an specific RCM
+	 * @param obj
+	 * @return capacity
+	 */
 	public Double  checkCapacity(RCM obj){  // Return the capacity 
 		
 		return (obj.presentCapacity)/(obj.capacity)*100;
 	}
-	
+	/**
+	 * Returns the last emptied date for an specific RCM
+	 * @param obj
+	 * @return date
+	 */
 	public Date getLastDateEmptied(RCM obj){
 		return obj.lastEmptied.get(obj.listOfTransaction.size()-1);
 	}
-	
+	/**
+	 * Returns the most used RCM in all times
+	 * @return rcm
+	 */
 	public RCM returnMostUsedMachine(){
 		int k, max;
 		RCM maxObj;
@@ -91,7 +133,10 @@ public class RMOS implements Serializable {
 		}
 		return maxObj;
 	}
-	
+	/**
+	 * Utility method used for testing purposes
+	 * that displays all RCMs basic information
+	 */
 	public void display(){
 		int k;
 		for(k=0;k <allRCMs.size(); k++){
@@ -100,11 +145,17 @@ public class RMOS implements Serializable {
 			System.out.println(allRCMs.get(k).Status);
 		}
 	}
-
+	/**
+	 * Getter method for available item types
+	 * @return availableItemTypes
+	 */
 	public static Item[] getAvailableItemTypes() {
 		return availableItemTypes;
 	}
-
+	/**
+	 * Utility method used for testing purposes
+	 * that displays the list of items of all RCMs
+	 */
 	public String toString(){
 		String test="";
 		for(int i=0; i<allRCMs.size();i++) {
@@ -115,10 +166,19 @@ public class RMOS implements Serializable {
 		return test;
 		
 	}
-	
+	/**
+	 * Setter method for the available items list
+	 * @param availableItemTypes
+	 */
 	public static void setAvailableItemTypes(Item availableItemTypes[]) {
 		RMOS.availableItemTypes = availableItemTypes;
 	}
+	/**
+	 * Method that returns the Machine Location with maximum transactions in the last
+	 * "x" days 
+	 * @param days
+	 * @return RCMlocation
+	 */
 	public String getMaxTransactionMachine(int days){
 		int max;
 		max = allRCMs.get(0).getNumberOfTransaction(days);
@@ -130,6 +190,14 @@ public class RMOS implements Serializable {
 			}
 		}
 		return Location;
+	}
+	/**
+	 * Utility method used to test the UI in early stages
+	 * @return item
+	 */
+	public static Item getRandomType() {
+		int i = new Random().nextInt(8);
+		return availableItemTypes[i];
 	}
 
 }
