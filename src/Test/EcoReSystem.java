@@ -1,4 +1,4 @@
-package gui;
+package Test;
 
 import java.io.*;
 import java.util.*;
@@ -6,21 +6,23 @@ import java.util.logging.*;
 
 import ecorecycle.RCM;
 import ecorecycle.RMOS;
+import gui.AdminUI;
 
+/**
+ * Class that reads the data object from the file and loads the user interface
+ * @author guilherme
+ */
 public class EcoReSystem {
 
 	public static void main(String[] args) {
   	
 		RMOS recoveredStation = new RMOS();
-        //deserialize the quarks.ser file
         try(
           InputStream file = new FileInputStream("data.ser");
           InputStream buffer = new BufferedInputStream(file);
           ObjectInput input = new ObjectInputStream (buffer);
         ){
-          //deserialize the List
           recoveredStation = (RMOS) input.readObject();
-          //display its data
         }
         catch(ClassNotFoundException ex){
           fLogger.log(Level.SEVERE, "Cannot perform input. Class not found.", ex);
@@ -32,7 +34,5 @@ public class EcoReSystem {
         stationUI.createAndShowGUI();
         
 	}
-
-    private static final Logger fLogger = Logger.getLogger(EcoReSystem.class.getPackage().getName());
-  
+    private static final Logger fLogger = Logger.getLogger(EcoReSystem.class.getPackage().getName());  
 }

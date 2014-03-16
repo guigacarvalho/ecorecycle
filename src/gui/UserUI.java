@@ -13,12 +13,11 @@ import java.io.IOException;
 import java.util.*;
 import java.util.Timer;
 
-/*import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeSelectionModel;
-import javax.swing.event.TreeSelectionEvent;
-import javax.swing.event.TreeSelectionListener;
-*/
-
+/**
+ * Class that shows the Recycling Machine UI
+ * @author guilherme
+ *
+ */
 @SuppressWarnings("serial")
 public class UserUI extends JPanel implements  ItemListener, ActionListener {
 
@@ -48,7 +47,10 @@ public class UserUI extends JPanel implements  ItemListener, ActionListener {
 	double itemPrice;
 	Item dropedItem;
 	
-	
+	/**
+	 * UserUI class constructor
+	 * @param rcmObj
+	 */
 	public UserUI (RCM rcmObj) {
 		super(new FlowLayout());
 		this.setBackground(Color.white);
@@ -131,7 +133,6 @@ public class UserUI extends JPanel implements  ItemListener, ActionListener {
 		centerContainer.add(transactionLogScrollPane);
 		centerContainer.add(dolarSign);
 		centerContainer.add(totalAmount);
-		//System.out.printf("%.2f",centerContainer.getAlignmentX());
 		JLabel dropItemsBar = loadImage(IMG_PATHS[4]);
 
 		Container recyclableItems = new Container();
@@ -151,7 +152,10 @@ public class UserUI extends JPanel implements  ItemListener, ActionListener {
 		
 		
 	}
-    public void displayRates () {
+	/**
+	 * Method that display the prices/unit for each acceptable item type
+	 */
+	public void displayRates () {
 		transactionItemsTextArea.setText("-----------------------------------------------\n");
 		for(int i=0;i<rcmObj.listOfItems.size();i++) {
 	    	if(rcmObj.weight==0) //display in lb
@@ -161,7 +165,11 @@ public class UserUI extends JPanel implements  ItemListener, ActionListener {
 		}
 		transactionItemsTextArea.setText(transactionItemsTextArea.getText()+"----------------------------------------------\n");
     }
-    
+    /**
+     * Method that loads the images and displays the toggle button
+     * @param name
+     * @return button
+     */
 		private JToggleButton loadToggleBtn(String name) {
        try {
           String enabledPath = "./img/buttons/"+ name +".png";
@@ -190,8 +198,10 @@ public class UserUI extends JPanel implements  ItemListener, ActionListener {
   		}
    }
 
+		/**
+		 * Handles the change for the units and cash or coupon buttons 
+		 */
 		public void itemStateChanged(ItemEvent e) {
-     //  if(e.getStateChange() == ItemEvent.SELECTED)
 			
 	   if(e.getSource() == cash)
        {
@@ -279,7 +289,10 @@ System.out.print(
 				 							   rcmObj.currentTransaction.transactionItems.get(i).price) ));		   		}
 			}
 	   }
-   }
+   } 
+		/**
+		 * Button handler method
+		 */
 		public void actionPerformed(ActionEvent e) {
 
 			for(int i=0;i<rcmObj.listOfItems.size();i++)
@@ -359,7 +372,9 @@ System.out.print(
 		       }
 
    }
-		
+		/**
+		 * Creates and show the GUI
+		 */
 		public void createAndShowGUI() {
 
         //Create and set up the window.
@@ -374,6 +389,12 @@ System.out.print(
         frame.setVisible(true);
 
     }
+		/**
+		 * Utility method to load images for the buttons
+		 * @param path
+		 * @param i
+		 * @return button
+		 */
 		public JButton loadImageBtn(String path, int i) {
         try {
             String pressedPath = "./img/buttons/click/"+ path.substring(14,path.length());
@@ -397,14 +418,25 @@ System.out.print(
            return null;
    		}
      }
+		/**
+		 * Method that returns if the button representing that item is allowed
+		 * or not in the RCM
+		 * @param z
+		 * @return true or false
+		 */
 		private boolean validateButton(int z) {
-			if (z>0 && z<9) 
+			if (z>0 && z<10) 
 				for (int j = 0; j < rcmObj.listOfItems.size(); j++)
 						if (rcmObj.listOfItems.get(j).itemType.equals(RMOS.getAvailableItemTypes()[z-1].itemType))
 								return true;
 				if(z==0) return true;
 				return false;
 		}
+		/**
+		 * Utility method that loads an image
+		 * @param path
+		 * @return label
+		 */
 		public JLabel loadImage(String path) {
         try {
            BufferedImage img = ImageIO.read(new File(path));
@@ -416,6 +448,9 @@ System.out.print(
            return null;
    		}
      }
+	/**
+	 * Utility method that handles the window visibility
+	 */
 		public void load(){
 			if (uiloaded==0) {
 				this.createAndShowGUI();
