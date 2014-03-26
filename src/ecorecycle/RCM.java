@@ -3,6 +3,7 @@ import gui.AdminUI;
 import gui.UserUI;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.swing.JOptionPane;
@@ -161,6 +162,20 @@ public class RCM implements Serializable {
 //		System.out.print("= Computing total weight.. This transaction had "+			 System.out.print("= Computing total weight.. This transaction had "+ +". \n"); +". \n");
 		return totalWt;
 	}
+	public double getWeightofMachine(int days){
+		Date myDate = null;
+		totalWt = 0.0;
+		Calendar calendar = Calendar.getInstance();
+		//calendar.setTime(myDate);
+		calendar.add(Calendar.DAY_OF_YEAR, -days);
+		Date newDate = calendar.getTime();
+		for(int i=0;i <listOfTransaction.size();i++){
+			if(this.listOfTransaction.get(i).transactionDate.after(newDate)){
+				totalWt = totalWt+ this.listOfTransaction.get(i).totalWeight;;
+			}
+		}
+		return totalWt;
+	}
 
 
 public void finishTransaction () {
@@ -173,33 +188,6 @@ public void finishTransaction () {
 }
 	public void setCoupons(int coupons) {
 		this.coupons = coupons;
-	}
-	public double getTotalValueOfMachinePerDay(){
-		double totalValue=0;
-		for(int i=0;i <listOfTransaction.size();i++){
-			if(this.listOfTransaction.get(i).transactionDate == new Date()){
-				totalValue =+ this.listOfTransaction.get(i).getTotalAmount();
-			}
-			 
-		}
-		return totalValue;
-	}
-	
-	public double getTotalValueOfMachinePerWeek(){
-		double totalValue=0;
-		Date myDate = null;
-		Calendar calendar = Calendar.getInstance();
-		//calendar.setTime(myDate);
-		calendar.add(Calendar.DAY_OF_YEAR, -7);
-		Date newDate = calendar.getTime();
-		//System.out.println(newDate);
-		for(int i=0;i <listOfTransaction.size();i++){
-			if(this.listOfTransaction.get(i).transactionDate.after(newDate) && this.listOfTransaction.get(i).transactionDate.before(new Date())){
-				totalValue =+ this.listOfTransaction.get(i).getTotalAmount();
-			}
-			 
-		}
-		return totalValue;
 	}
 	public int getNumberOfTransaction(int days){
 		Date myDate = null;
@@ -234,12 +222,17 @@ public void finishTransaction () {
 		Double cashAmount = 0.0;
 		Date myDate = null;
 		Calendar calendar = Calendar.getInstance();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy MMM dd");
 		//calendar.setTime(myDate);
 		calendar.add(Calendar.DAY_OF_YEAR, -days);
 		Date newDate = calendar.getTime();
+		System.out.println("\n= Start Date : " + sdf.format(calendar.getTime()));
+
 		for(int i=0;i < this.listOfTransaction.size();i++){
 			if(this.listOfTransaction.get(i).flagCoupon == 0 && this.listOfTransaction.get(i).transactionDate.after(newDate)){
 				cashAmount += this.listOfTransaction.get(i).totalAmount;
+				System.out.println("\n =Date : " + sdf.format(this.listOfTransaction.get(i).transactionDate)+" $"+this.listOfTransaction.get(i).totalAmount);
+				
 			}
 		}
 		return cashAmount;
