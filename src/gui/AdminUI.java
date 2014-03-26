@@ -528,42 +528,70 @@ public class AdminUI extends JPanel implements  ActionListener,
         XYChart.Series series = new XYChart.Series();
 	        for(int i=0; i<station.getMachines().size();i++) {
 	        	if (selectedTab==0) {// weight is selected
-	        		if(dayCB.getSelectedIndex()==0)
-	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalWeightOfMachine()));
-	        		else
-	        			if(dayCB.getSelectedIndex()==1)
-	        				series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalWeightOfMachine()));
-	        			
-	        	} else if (selectedTab==1) {
-	        		if(dayCB.getSelectedIndex()==0) {
-	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(10)));
-	        			System.out.print("All Time"+station.getMachine(i).getTotalValueOfCash(1));
-	        			
+	        		if(dayCB.getSelectedIndex()==0) {// All Time
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(365*10)));	        			
 	        		}
-	        		else if(dayCB.getSelectedIndex()==1) {
+	        		else if(dayCB.getSelectedIndex()==1) {// Day
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(1)));
+        			}
+	        		else if(dayCB.getSelectedIndex()==2) {// Week
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(7)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==3) {// Month
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(30)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getWeightofMachine(numberOfDays)));
+	        		}
+	        	} else if (selectedTab==1) {// money is selected
+	        		if(dayCB.getSelectedIndex()==0) {// All Time
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(365*10)));	        			
+	        		}
+	        		else if(dayCB.getSelectedIndex()==1) {// Day
 		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(1)));
-		        			System.out.print("Day"+station.getMachine(i).getTotalValueOfCash(1));
-		        			 	
         			}
-	        		else if(dayCB.getSelectedIndex()==2) {
+	        		else if(dayCB.getSelectedIndex()==2) {// Week
 		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(7)));
-		        			System.out.print("Week"+station.getMachine(i).getTotalValueOfCash(1));		
-        			}
-	        	} else if (selectedTab==2) {
-	        		if(numberOfDays==0)
-	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(10)));
-	        		else
-	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalWeightOfMachine()));
-	        	} else if (selectedTab==3) {
-	        		if(numberOfDays==0)
-	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(1000)));
-	        		else {
-	        			if(dayCB.getSelectedIndex()==1)
-		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfMachinePerDay()));
-	        			if(dayCB.getSelectedIndex()==2)
-		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfMachinePerWeek()));
 	        		}
-	        	}
+	        		else if(dayCB.getSelectedIndex()==3) {// Month
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(30)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getTotalValueOfCash(numberOfDays)));
+	        		}
+	        	} else if (selectedTab==2) {//Items is selected
+	        		if(dayCB.getSelectedIndex()==0) {// All Time
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(365*10)));	        			
+	        		}
+	        		else if(dayCB.getSelectedIndex()==1) {// Day
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(1)));
+        			}
+	        		else if(dayCB.getSelectedIndex()==2) {// Week
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(7)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==3) {// Month
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(30)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfItems(numberOfDays)));
+	        		}
+	        	} else if (selectedTab==3) {// Transactions is selected
+	        		if(dayCB.getSelectedIndex()==0) {// All Time
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(365*10)));	        			
+	        		}
+	        		else if(dayCB.getSelectedIndex()==1) {// Day
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(1)));
+        			}
+	        		else if(dayCB.getSelectedIndex()==2) {// Week
+		        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(7)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==3) {// Month
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(30)));
+	        		}
+	        		else if(dayCB.getSelectedIndex()==4) {// Number of Days
+	        			series.getData().add(new XYChart.Data(station.getMachine(i).location,station.getMachine(i).getNumberOfTransaction(numberOfDays)));
+	        		}
+        		}
 	        }
         bc.getData().addAll(series);	
         Scene  scene  = new Scene(bc,750,150);
@@ -656,12 +684,12 @@ public class AdminUI extends JPanel implements  ActionListener,
 	       });
 		}
 		public static void refreshStatistics () {
-       		System.out.print(station.getMachine(0).getNumberOfTransaction(7)+""+
-       		station.getMachine(0).getTotalValueOfMachinePerDay()+
-       		station.getMachine(0).getTotalValueOfMachinePerWeek()+
-       		station.getMaxTransactionMachine(7)+
-       		station.returnMostUsedMachine().location);
-
+//       		System.out.print(station.getMachine(0).getNumberOfTransaction(7)+""+
+//       		station.getMachine(0).getTotalValueOfMachinePerDay()+
+//       		station.getMachine(0).getTotalValueOfMachinePerWeek()+
+//       		station.getMaxTransactionMachine(7)+
+//       		station.returnMostUsedMachine().location);
+//
 		}
 		
 		@Override
